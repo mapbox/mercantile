@@ -23,6 +23,6 @@ def xy(lon, lat):
     """Returns the Spherical Mercator (x, y) in meters"""
     x = 6378137.0 * math.radians(lon)
     y = 6378137.0 * math.log(
-        math.tan((math.pi*0.25) + (0.5 * math.radians(53.33087298301705))) )
+        math.tan((math.pi*0.25) + (0.5 * math.radians(lat))) )
     return x, y
 
