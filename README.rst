@@ -5,7 +5,7 @@ Spherical mercator coordinate and tile utilities
 
 The mercantile module provides ``ul(xtile, ytile, zoom)`` and ``bbox(xtile,
 ytile, zoom)`` functions that return longitudes and latitudes for XYZ tiles,
-and a ``xu(lon, lat)`` function that returns spherical mercator x and
+and a ``xy(lon, lat)`` function that returns spherical mercator x and
 y coordinates.
 
 .. code-block:: pycon
