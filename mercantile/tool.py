@@ -18,7 +18,7 @@ def open_output(arg):
 def main(outfile, xyz, **dump_kw):
     x, y, z = map(int, xyz.split(','))
     minlon, minlat, maxlon, maxlat = (
-            round(v, 6) for v in mercantile.bbox(x, y, z))
+            round(v, 6) for v in mercantile.bounds(x, y, z))
     
     geom = {
         'type': 'Polygon',
