@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.0'
+version = '0.1'
 
 setup(name='mercantile',
       version=version,
@@ -12,7 +12,7 @@ setup(name='mercantile',
       keywords='',
       author='Sean Gillies',
       author_email='sean@mapbox.com',
-      url='',
+      url='https://github.com/sgillies/mercantile',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,

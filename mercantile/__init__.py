@@ -16,7 +16,7 @@ def ul(xtile, ytile, zoom):
     lat_deg = math.degrees(lat_rad)
     return LngLat(lon_deg, lat_deg)
 
-def bbox(xtile, ytile, zoom):
+def bounds(xtile, ytile, zoom):
     """Returns the (lon, lat) bounding box of a tile"""
     a = ul(xtile, ytile, zoom)
     b = ul(xtile+1, ytile+1, zoom)

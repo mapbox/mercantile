@@ -10,7 +10,7 @@ def test_ul():
 
 def test_bbox():
     expected = (-9.140625, 53.12040528310657, -8.7890625, 53.33087298301705)
-    bbox = mercantile.bbox(486, 332, 10)
+    bbox = mercantile.bounds(486, 332, 10)
     for a, b in zip(expected, bbox):
         assert round(a-b, 7) == 0
     assert bbox.west == bbox[0]
