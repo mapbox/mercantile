@@ -5,6 +5,10 @@
 from collections import namedtuple
 import math
 
+
+__all__ = ['ul', 'bounds', 'xy', 'tile']
+__version__ = '0.2'
+
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
 
@@ -34,5 +38,7 @@ def tile(lng, lat, zoom):
     lat = math.radians(lat)
     n = 2.0 ** zoom
     xtile = int((lng + 180.0) / 360.0 * n)
-    ytile = int((1.0 - math.log(math.tan(lat) + (1 / math.cos(lat))) / math.pi) / 2.0 * n)
+    ytile = int((1.0 - math.log(
+        math.tan(lat) + (1 / math.cos(lat))) / math.pi) / 2.0 * n)
     return xtile, ytile
+

@@ -1,7 +1,14 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1'
+# Parse the version from the fiona module.
+with open('mercantile/__init__.py') as f:
+    for line in f:
+        if line.find("__version__") >= 0:
+            version = line.split("=")[1].strip()
+            version = version.strip('"')
+            version = version.strip("'")
+            continue
 
 setup(name='mercantile',
       version=version,

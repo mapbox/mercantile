@@ -1,6 +1,10 @@
 Changes
 =======
 
+Next
+----
+- Added tile() function (#2).
+
 0.1 (2014-03-26)
 ----------------
 - Added mercantile.tool script for use with geojsonio-cli.
