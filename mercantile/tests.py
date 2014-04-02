@@ -28,3 +28,10 @@ def test_xy():
     expected = (0.0, 0.0)
     for a, b in zip(expected, xy):
         assert round(a-b, 7) == 0
+    
+    
+def test_tile():
+    tile = mercantile.tile(20.6852, 40.1222, 9)
+    expected = (285, 193)
+    assert tile[0] == expected[0]
+    assert tile[1] == expected[1]

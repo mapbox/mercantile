@@ -29,3 +29,10 @@ def xy(lng, lat):
         math.tan((math.pi*0.25) + (0.5 * math.radians(lat))) )
     return x, y
 
+def tile(lng, lat, zoom):
+    """Returns the (x, y) tile"""
+    lat = math.radians(lat)
+    n = 2.0 ** zoom
+    xtile = int((lng + 180.0) / 360.0 * n)
+    ytile = int((1.0 - math.log(math.tan(lat) + (1 / math.cos(lat))) / math.pi) / 2.0 * n)
+    return xtile, ytile
