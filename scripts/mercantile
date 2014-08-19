@@ -1,0 +1,155 @@
+#!/usr/bin/env python
+
+"""Mercantile command line interface
+
+Example usage:
+
+  $ echo "POINT (0.9999999 0.9999999)" \
+  > | geomet --wkb \
+  > | geomet --wkt --precision 7
+  POINT (0.9999999 0.9999999)
+
+"""
+
+import json
+import logging
+import sys
+
+import click
+
+import mercantile
+
+
+def configure_logging(verbosity):
+    log_level = max(10, 30 - 10*verbosity)
+    logging.basicConfig(stream=sys.stderr, level=log_level)
+
+
+# The CLI command group.
+@click.group(help="Mercantile command line interface.")
+@click.option('--verbose', '-v', count=True, help="Increase verbosity.")
+@click.option('--quiet', '-q', count=True, help="Decrease verbosity.")
+@click.pass_context
+def cli(ctx, verbose, quiet):
+    verbosity = verbose - quiet
+    configure_logging(verbosity)
+    ctx.obj = {}
+    ctx.obj['verbosity'] = verbosity
+
+
+# Commands are below.
+
+@cli.command(short_help="Write the shapes of tiles as GeoJSON.")
+@click.argument('input', type=click.File('r'))
+@click.option('--precision', type=int, default=-1,
+              help="Decimal precision of coordinates.")
+@click.option('--indent', default=None, type=int,
+              help="Indentation level for JSON output")
+@click.option('--compact', default=False, type=bool,
+              help="Use compact separators (',', ':').")
+@click.option('--x-json-seq/--x-json-obj', default=False,
+              help="Write a JSON sequence (default is object). Requires specification of text separator. Experimental.")
+@click.option('--x-text-sep-lf', 'text_sep', flag_value='\n',
+              help="Use LF as text separator. Experimental.")
+@click.pass_context
+def shapes(
+        ctx, input, precision, indent, compact, x_json_seq, text_sep=None):
+    """This reads [X, Y, Z] Web Mercator tile descriptions from stdin
+    and writes either a GeoJSON feature collection (the default) or
+    a JSON sequence of GeoJSON features to stdout.
+    
+    Example
+    """
+    verbosity = ctx.obj['verbosity']
+    logger = logging.getLogger('mercantile')
+    dump_kwds = {'sort_keys': True}
+    if indent:
+        dump_kwds['indent'] = args.indent
+    if compact:
+        dump_kwds['separators'] = (',', ':')
+    try:
+        features = []
+        for line in input:
+            x, y, z = json.loads(line)[:3]
+            west, south, east, north = mercantile.bounds(x, y, z)
+            if precision >= 0:
+                west, south, east, north = (
+                    round(v, 6) for v in (west, south, east, north))
+            geom = {
+                'type': 'Polygon',
+                'coordinates': [[
+                    [west, south],
+                    [west, north],
+                    [east, north],
+                    [east, south],
+                    [west, south] ]]}
+            xyz = str((x, y, z))
+            feature = {
+                'type': 'Feature',
+                'id': xyz,
+                'geometry': geom,
+                'properties': {'title': 'XYZ tile %s' % xyz} }
+            if x_json_seq:
+                click.echo(json.dumps(feature, **dump_kwds))
+            else:
+                features.append(feature)
+        if not x_json_seq:
+            click.echo(json.dumps(
+                {'type': 'FeatureCollection', 'features': features},
+                **dump_kwds))
+        sys.exit(0)
+    except Exception:
+        logger.exception("Failed. Exception caught")
+        sys.exit(1)
+
+
+@cli.command(short_help="List tiles intersecting a lng/lat bounding box.")
+@click.argument('input', type=click.File('r'))
+@click.argument('zoom', type=int, required=True)
+@click.pass_context
+def tiles(ctx, input, zoom):
+    """This script lists Web Mercator tiles at ZOOM level intersecting
+    a GeoJSON [west, south, east, north] bounding box read from stdin.
+    Output is a JSON [x, y, z, west, south, east, north] array.
+
+    Example:
+
+    $ echo "[-105.05, 39.95, -105, 40]" | mercantile tiles 12
+
+    Output:
+
+    [852, 1550, 12, -105.1171875, 39.977120098439634, -105.029296875, 40.044437584608566]
+    [852, 1551, 12, -105.1171875, 39.909736234537185, -105.029296875, 39.977120098439634]
+    [853, 1550, 12, -105.029296875, 39.977120098439634, -104.94140625, 40.044437584608566]
+    [853, 1551, 12, -105.029296875, 39.909736234537185, -104.94140625, 39.977120098439634]
+
+    """
+    verbosity = ctx.obj['verbosity']
+    logger = logging.getLogger('mercantile')
+    try:
+        # Detect the input format
+        for line in input:
+            # Get a bounding box from the input
+            data = json.loads(line)
+            if isinstance(data, list):
+                bbox = data
+            elif isinstance(data, dict):
+                bbox = data['bbox']
+                # TODO: compute a bounding box from coordinates.
+            west, south, east, north = bbox
+            minx, miny = mercantile.tile(west, north, zoom)
+            maxx, maxy = mercantile.tile(east, south, zoom)
+            logger.debug("Tile ranges [%d:%d, %d:%d]",
+                         minx, maxx, miny, maxy)
+            for x in range(minx, maxx+1):
+                for y in range(miny, maxy+1):
+                    output = json.dumps((x, y, zoom) + mercantile.bounds(x, y, zoom))
+                    click.echo(output)
+        sys.exit(0)
+    except Exception:
+        logger.exception("Failed. Exception caught")
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    cli()

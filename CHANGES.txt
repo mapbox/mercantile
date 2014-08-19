@@ -1,10 +1,11 @@
 Changes
 =======
 
-Next
-----
+0.2 (2014-08-19)
+----------------
 - Added tile() function (#2).
 - Add mercantile script (#3).
+- Added shapes command (#6).
 
 0.1 (2014-03-26)
 ----------------

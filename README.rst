@@ -18,54 +18,19 @@ y coordinates.
     >>> mercantile.xy(*mercantile.ul(486, 332, 10))
     (-1017529.7205322663, 7044436.526761846)
 
-mercantile.tool
----------------
+Mercantile CLI
+--------------
 
-Mercantile includes a script that writes the extent of an XYZ tile out as
-GeoJSON.
+Mercantile's command line interface, named "mercantile", has commands for 
+getting the shapes of Web Mercator tiles as GeoJSON and getting the tiles
+that intersect with a GeoJSON bounding box. They can be combined like this:
 
 .. code-block:: console
 
-    $ python -mmercantile.tool 20,35,6 --pretty
-    {
-      "features": [
-        {
-          "geometry": {
-            "coordinates": [
-              [
-                [
-                  -67.5,
-                  -21.943046
-                ],
-                [
-                  -67.5,
-                  -16.636192
-                ],
-                [
-                  -61.875,
-                  -16.636192
-                ],
-                [
-                  -61.875,
-                  -21.943046
-                ],
-                [
-                  -67.5,
-                  -21.943046
-                ]
-              ]
-            ],
-            "type": "Polygon"
-          },
-          "id": "20,35,6",
-          "properties": {
-            "title": "XYZ tile 20,35,6"
-          },
-          "type": "Feature"
-        }
-      ],
-      "type": "FeatureCollection"
-    }
+    $ echo "[-104.99, 39.99, -105, 40]" \
+    > | mercantile tiles - 14 \
+    > | mercantile shapes -
+    {"features": [{"geometry": {"coordinates": [[[-105.00732421875, 39.9939556939733], [-105.00732421875, 40.01078714046552], [-104.9853515625, 40.01078714046552], [-104.9853515625, 39.9939556939733], [-105.00732421875, 39.9939556939733]]], "type": "Polygon"}, "id": "(3413, 6202, 14)", "properties": {"title": "XYZ tile (3413, 6202, 14)"}, "type": "Feature"}, {"geometry": {"coordinates": [[[-105.00732421875, 39.977120098439634], [-105.00732421875, 39.9939556939733], [-104.9853515625, 39.9939556939733], [-104.9853515625, 39.977120098439634], [-105.00732421875, 39.977120098439634]]], "type": "Polygon"}, "id": "(3413, 6203, 14)", "properties": {"title": "XYZ tile (3413, 6203, 14)"}, "type": "Feature"}], "type": "FeatureCollection"}
 
 If you have `geojsonio-cli <https://github.com/mapbox/geojsonio-cli>`__
 installed, you can shoot this GeoJSON straight to `geojson.io
@@ -73,7 +38,10 @@ installed, you can shoot this GeoJSON straight to `geojson.io
 
 .. code-block:: console
 
-    $ python -mmercantile.tool 20,35,6 --compact | geojsonio
+    $ echo "[-104.99, 39.99, -105, 40]" \
+    > | mercantile tiles - 14 \
+    > | mercantile shapes - --compact \
+    > | geojsonio
 
 See Also
 --------
