@@ -75,3 +75,8 @@ installed, you can shoot this GeoJSON straight to `geojson.io
 
     $ python -mmercantile.tool 20,35,6 --compact | geojsonio
 
+See Also
+--------
+
+`node-sphericalmercator <https://github.com/mapbox/node-sphericalmercator>`__
+provides many of the same features for Node.
