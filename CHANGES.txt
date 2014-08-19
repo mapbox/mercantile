@@ -4,6 +4,7 @@ Changes
 Next
 ----
 - Added tile() function (#2).
+- Add mercantile script (#3).
 
 0.1 (2014-03-26)
 ----------------
