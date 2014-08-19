@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.2.1 (2014-08-19)
+------------------
+- Feature collections as option for shapes command.
+
 0.2 (2014-08-19)
 ----------------
 - Added tile() function (#2).

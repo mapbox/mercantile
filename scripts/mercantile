@@ -51,13 +51,19 @@ def cli(ctx, verbose, quiet):
               help="Write a JSON sequence (default is object). Requires specification of text separator. Experimental.")
 @click.option('--x-text-sep-lf', 'text_sep', flag_value='\n',
               help="Use LF as text separator. Experimental.")
+@click.option('--feature', 'output_mode', flag_value='feature',
+              default=True,
+              help="Output as sequrnce of GeoJSON features (the default).")
+@click.option('--collection', 'output_mode', flag_value='collection',
+              help="Output as sequence of GeoJSON feature collections.")
 @click.pass_context
 def shapes(
-        ctx, input, precision, indent, compact, x_json_seq, text_sep=None):
+        ctx, input, precision, indent, compact, output_mode,
+        x_json_seq, text_sep=None):
     """This reads [X, Y, Z] Web Mercator tile descriptions from stdin
     and writes either a GeoJSON feature collection (the default) or
     a JSON sequence of GeoJSON features to stdout.
-    
+
     Example
     """
     verbosity = ctx.obj['verbosity']
@@ -90,7 +96,12 @@ def shapes(
                 'geometry': geom,
                 'properties': {'title': 'XYZ tile %s' % xyz} }
             if x_json_seq:
-                click.echo(json.dumps(feature, **dump_kwds))
+                if output_mode == 'feature':
+                    click.echo(json.dumps(feature, **dump_kwds))
+                else:
+                    click.echo(json.dumps({
+                        'type': 'FeatureCollection',
+                        'features': [feature]}, **dump_kwds))
             else:
                 features.append(feature)
         if not x_json_seq:
