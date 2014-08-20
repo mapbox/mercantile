@@ -47,6 +47,11 @@ def cli(ctx, verbose, quiet):
               help="Indentation level for JSON output")
 @click.option('--compact', default=False, type=bool,
               help="Use compact separators (',', ':').")
+@click.option('--geographic', 'projected', flag_value='geographic',
+              default=True,
+              help="Output in geographic coordinates (the default).")
+@click.option('--mercator', 'projected', flag_value='mercator',
+              help="Output in Web Mercator coordinates.")
 @click.option('--x-json-seq/--x-json-obj', default=False,
               help="Write a JSON sequence (default is object). Requires specification of text separator. Experimental.")
 @click.option('--x-text-sep-lf', 'text_sep', flag_value='\n',
@@ -58,19 +63,22 @@ def cli(ctx, verbose, quiet):
               help="Output as sequence of GeoJSON feature collections.")
 @click.pass_context
 def shapes(
-        ctx, input, precision, indent, compact, output_mode,
+        ctx, input, precision, indent, compact, projected, output_mode,
         x_json_seq, text_sep=None):
-    """This reads [X, Y, Z] Web Mercator tile descriptions from stdin
-    and writes either a GeoJSON feature collection (the default) or
-    a JSON sequence of GeoJSON features to stdout.
+    """This reads one or more [X, Y, Z] Web Mercator tile descriptions
+    from stdin and writes either a GeoJSON feature collection (the
+    default) or a JSON sequence of GeoJSON features to stdout.
 
-    Example
-    """
+    Example of writing all tile shapes as GeoJSON feature collection to
+    stdout (the default) with 6 decimal places of coordinate precision:
+
+    $ echo "[106, 193, 9]" | mercantile shapes - --precision 6
+    {"features": [{"geometry": {"coordinates": [[[-105.46875, 39.909736], [-105.46875, 40.446947], [-104.765625, 40.446947], [-104.765625, 39.909736], [-105.46875, 39.909736]]], "type": "Polygon"}, "id": "(106, 193, 9)", "properties": {"title": "XYZ tile (106, 193, 9)"}, "type": "Feature"}], "type": "FeatureCollection"}    """
     verbosity = ctx.obj['verbosity']
     logger = logging.getLogger('mercantile')
     dump_kwds = {'sort_keys': True}
     if indent:
-        dump_kwds['indent'] = args.indent
+        dump_kwds['indent'] = indent
     if compact:
         dump_kwds['separators'] = (',', ':')
     try:
@@ -78,6 +86,9 @@ def shapes(
         for line in input:
             x, y, z = json.loads(line)[:3]
             west, south, east, north = mercantile.bounds(x, y, z)
+            if projected == 'mercator':
+                west, south = mercantile.xy(west, south)
+                east, north = mercantile.xy(east, north)
             if precision >= 0:
                 west, south, east, north = (
                     round(v, 6) for v in (west, south, east, north))

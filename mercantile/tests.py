@@ -1,3 +1,5 @@
+import subprocess
+
 import mercantile
 
 def test_ul():
@@ -36,3 +38,14 @@ def test_tile():
     assert tile[0] == expected[0]
     assert tile[1] == expected[1]
 
+def test_cli_shapes():
+    result = subprocess.check_output(
+        'echo "[106, 193, 9]" | mercantile shapes - --precision 6',
+        shell=True)
+    assert result.decode('utf-8').strip() == '{"features": [{"geometry": {"coordinates": [[[-105.46875, 39.909736], [-105.46875, 40.446947], [-104.765625, 40.446947], [-104.765625, 39.909736], [-105.46875, 39.909736]]], "type": "Polygon"}, "id": "(106, 193, 9)", "properties": {"title": "XYZ tile (106, 193, 9)"}, "type": "Feature"}], "type": "FeatureCollection"}'
+
+def test_cli_tiles():
+    result = subprocess.check_output(
+        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles - 14',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'

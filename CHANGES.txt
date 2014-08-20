@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.3 (2014-08-19)
+----------------
+- Add mercator output option for shapes (#9).
+
 0.2.1 (2014-08-19)
 ------------------
 - Feature collections as option for shapes command.
