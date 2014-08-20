@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile']
-__version__ = '0.3'
+__version__ = '0.4'
 
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])

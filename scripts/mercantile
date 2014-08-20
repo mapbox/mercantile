@@ -26,7 +26,7 @@ def configure_logging(verbosity):
 
 
 # The CLI command group.
-@click.group(help="Mercantile command line interface.")
+@click.group(help="Command line interface for the Mercantile Python package.")
 @click.option('--verbose', '-v', count=True, help="Increase verbosity.")
 @click.option('--quiet', '-q', count=True, help="Decrease verbosity.")
 @click.pass_context
@@ -36,11 +36,10 @@ def cli(ctx, verbose, quiet):
     ctx.obj = {}
     ctx.obj['verbosity'] = verbosity
 
-
 # Commands are below.
 
 @cli.command(short_help="Write the shapes of tiles as GeoJSON.")
-@click.argument('input', type=click.File('r'))
+@click.argument('input', default='-', required=False)
 @click.option('--precision', type=int, default=-1,
               help="Decimal precision of coordinates.")
 @click.option('--indent', default=None, type=int,
@@ -52,10 +51,12 @@ def cli(ctx, verbose, quiet):
               help="Output in geographic coordinates (the default).")
 @click.option('--mercator', 'projected', flag_value='mercator',
               help="Output in Web Mercator coordinates.")
-@click.option('--x-json-seq/--x-json-obj', default=False,
-              help="Write a JSON sequence (default is object). Requires specification of text separator. Experimental.")
-@click.option('--x-text-sep-lf', 'text_sep', flag_value='\n',
-              help="Use LF as text separator. Experimental.")
+@click.option('--json-obj', 'json_mode', flag_value='obj', default=True,
+        help="Write a single JSON object (the default).")
+@click.option('--x-json-seq', 'json_mode', flag_value='seq',
+        help="Write a JSON sequence. Experimental.")
+@click.option('--x-json-seq-rs/--x-json-seq-no-rs', default=False,
+        help="Use RS as text separator. Experimental.")
 @click.option('--feature', 'output_mode', flag_value='feature',
               default=True,
               help="Output as sequrnce of GeoJSON features (the default).")
@@ -63,16 +64,20 @@ def cli(ctx, verbose, quiet):
               help="Output as sequence of GeoJSON feature collections.")
 @click.pass_context
 def shapes(
-        ctx, input, precision, indent, compact, projected, output_mode,
-        x_json_seq, text_sep=None):
+        ctx, input, precision, indent, compact, projected, 
+        json_mode, x_json_seq_rs, output_mode):
     """This reads one or more [X, Y, Z] Web Mercator tile descriptions
     from stdin and writes either a GeoJSON feature collection (the
-    default) or a JSON sequence of GeoJSON features to stdout.
+    default) or a JSON sequence of GeoJSON features/collections to
+    stdout.
 
     Example of writing all tile shapes as GeoJSON feature collection to
     stdout (the default) with 6 decimal places of coordinate precision:
 
-    $ echo "[106, 193, 9]" | mercantile shapes - --precision 6
+    $ echo "[106, 193, 9]" | mercantile shapes --precision 6
+
+    Output:
+
     {"features": [{"geometry": {"coordinates": [[[-105.46875, 39.909736], [-105.46875, 40.446947], [-104.765625, 40.446947], [-104.765625, 39.909736], [-105.46875, 39.909736]]], "type": "Polygon"}, "id": "(106, 193, 9)", "properties": {"title": "XYZ tile (106, 193, 9)"}, "type": "Feature"}], "type": "FeatureCollection"}    """
     verbosity = ctx.obj['verbosity']
     logger = logging.getLogger('mercantile')
@@ -82,8 +87,14 @@ def shapes(
     if compact:
         dump_kwds['separators'] = (',', ':')
     try:
+        src = click.open_file(input).__iter__()
+    except IOError:
+        src = [input]
+    stdout = click.get_text_stream('stdout')
+    try:
         features = []
-        for line in input:
+        for line in src:
+            line = line.strip()
             x, y, z = json.loads(line)[:3]
             west, south, east, north = mercantile.bounds(x, y, z)
             if projected == 'mercator':
@@ -106,19 +117,24 @@ def shapes(
                 'id': xyz,
                 'geometry': geom,
                 'properties': {'title': 'XYZ tile %s' % xyz} }
-            if x_json_seq:
+            if json_mode == 'seq':
+                if x_json_seq_rs:
+                    stdout.write(u'\u001e')
                 if output_mode == 'feature':
-                    click.echo(json.dumps(feature, **dump_kwds))
+                    stdout.write(json.dumps(feature, **dump_kwds))
+                    stdout.write('\n')
                 else:
-                    click.echo(json.dumps({
+                    stdout.write(json.dumps({
                         'type': 'FeatureCollection',
                         'features': [feature]}, **dump_kwds))
+                    stdout.write('\n')
             else:
                 features.append(feature)
-        if not x_json_seq:
-            click.echo(json.dumps(
+        if json_mode == 'obj':
+            stdout.write(json.dumps(
                 {'type': 'FeatureCollection', 'features': features},
                 **dump_kwds))
+            stdout.write('\n')
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")
@@ -126,13 +142,16 @@ def shapes(
 
 
 @cli.command(short_help="List tiles intersecting a lng/lat bounding box.")
-@click.argument('input', type=click.File('r'))
 @click.argument('zoom', type=int, required=True)
+@click.argument('input', default='-', required=False)
+@click.option('--bounds/--no-bounds', default=False,
+        help="Add tile bounds to output.")
 @click.pass_context
-def tiles(ctx, input, zoom):
+def tiles(ctx, zoom, input, bounds):
     """This script lists Web Mercator tiles at ZOOM level intersecting
     a GeoJSON [west, south, east, north] bounding box read from stdin.
-    Output is a JSON [x, y, z, west, south, east, north] array.
+    Output is a JSON [x, y, z [, west, south, east, north -- optional]]
+    array.
 
     Example:
 
@@ -140,17 +159,23 @@ def tiles(ctx, input, zoom):
 
     Output:
 
-    [852, 1550, 12, -105.1171875, 39.977120098439634, -105.029296875, 40.044437584608566]
-    [852, 1551, 12, -105.1171875, 39.909736234537185, -105.029296875, 39.977120098439634]
-    [853, 1550, 12, -105.029296875, 39.977120098439634, -104.94140625, 40.044437584608566]
-    [853, 1551, 12, -105.029296875, 39.909736234537185, -104.94140625, 39.977120098439634]
+    [852, 1550, 12]
+    [852, 1551, 12]
+    [853, 1550, 12]
+    [853, 1551, 12]
 
     """
     verbosity = ctx.obj['verbosity']
     logger = logging.getLogger('mercantile')
     try:
+        src = click.open_file(input).readlines()
+    except IOError:
+        src = [input]
+    stdout = click.get_text_stream('stdout')
+    try:
         # Detect the input format
-        for line in input:
+        for line in src:
+            line = line.strip()
             # Get a bounding box from the input
             data = json.loads(line)
             if isinstance(data, list):
@@ -165,8 +190,12 @@ def tiles(ctx, input, zoom):
                          minx, maxx, miny, maxy)
             for x in range(minx, maxx+1):
                 for y in range(miny, maxy+1):
-                    output = json.dumps((x, y, zoom) + mercantile.bounds(x, y, zoom))
-                    click.echo(output)
+                    vals = (x, y, zoom)
+                    if bounds:
+                        vals +=  mercantile.bounds(x, y, zoom)
+                    output = json.dumps(vals)
+                    stdout.write(output)
+                    stdout.write('\n')
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")

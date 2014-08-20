@@ -1,6 +1,11 @@
 Changes
 =======
 
+Next
+----
+- Add option for RS-deliminted JSON sequences.
+- Transparent handling of file, stream, and text input (#11).
+
 0.3 (2014-08-19)
 ----------------
 - Add mercator output option for shapes (#9).
