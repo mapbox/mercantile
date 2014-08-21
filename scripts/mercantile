@@ -80,6 +80,13 @@ def cli(ctx, verbose, quiet):
               help="Output as sequence of GeoJSON features (the default).")
 @click.option('--collection', 'output_mode', flag_value='collection',
               help="Output as sequence of GeoJSON feature collections.")
+@click.option('--bbox', 'output_mode', flag_value='bbox',
+              help="Output as sequence of GeoJSON bbox arrays.")
+
+# Optionally write out bboxen in a form that goes
+# straight into GDAL utilities like gdalwarp.
+@click.option('--extents/--no-extents', default=False,
+        help="Write shape extents as ws-separated strings (default is False).")
 
 # Optionally buffer the shapes by shifting the x and y values of each
 # vertex by a constant number of decimal degrees or meters (depending
@@ -91,7 +98,7 @@ def cli(ctx, verbose, quiet):
 
 def shapes(
         ctx, input, precision, indent, compact, projected,
-        json_mode, x_json_seq_rs, output_mode, buffer):
+        json_mode, x_json_seq_rs, output_mode, extents, buffer):
 
     """Reads one or more [x, y, z] Web Mercator tile descriptions
     from stdin and writes either a GeoJSON feature collection (the
@@ -122,6 +129,8 @@ def shapes(
     stdout = click.get_text_stream('stdout')
     try:
         features = []
+        col_xs = []
+        col_ys = []
         for line in src:
             line = line.strip()
             x, y, z = json.loads(line)[:3]
@@ -137,6 +146,11 @@ def shapes(
             if precision >= 0:
                 west, south, east, north = (
                     round(v, 6) for v in (west, south, east, north))
+            bbox = [
+                min(west, east), min(south, north), 
+                max(west, east), max(south, north)]
+            col_xs.extend([west, east])
+            col_ys.extend([south, north])
             geom = {
                 'type': 'Polygon',
                 'coordinates': [[
@@ -148,25 +162,32 @@ def shapes(
             xyz = str((x, y, z))
             feature = {
                 'type': 'Feature',
+                'bbox': bbox,
                 'id': xyz,
                 'geometry': geom,
                 'properties': {'title': 'XYZ tile %s' % xyz} }
-            if json_mode == 'seq':
+            if extents:
+                stdout.write(" ".join(map(str, bbox)))
+                stdout.write("\n")
+            elif json_mode == 'seq':
                 if x_json_seq_rs:
                     stdout.write(u'\u001e')
-                if output_mode == 'feature':
+                if output_mode == 'bbox':
+                    stdout.write(json.dumps(bbox, **dump_kwds))
+                elif output_mode == 'feature':
                     stdout.write(json.dumps(feature, **dump_kwds))
-                    stdout.write('\n')
                 else:
                     stdout.write(json.dumps({
                         'type': 'FeatureCollection',
                         'features': [feature]}, **dump_kwds))
-                    stdout.write('\n')
+                stdout.write('\n')
             else:
                 features.append(feature)
-        if json_mode == 'obj':
-            stdout.write(json.dumps(
-                {'type': 'FeatureCollection', 'features': features},
+        if json_mode == 'obj' and not extents:
+            bbox = [min(col_xs), min(col_ys), max(col_xs), max(col_ys)]
+            stdout.write(json.dumps({
+                'type': 'FeatureCollection', 
+                'bbox': bbox, 'features': features},
                 **dump_kwds))
             stdout.write('\n')
         sys.exit(0)
