@@ -50,7 +50,7 @@ The shapes command writes Mercator tile shapes to several forms of GeoJSON.
 
 .. code-block:: 
 
-    $ echo "[106, 193, 9]" | mercantile shapes - --indent 2 --precision 6
+    $ echo "[106, 193, 9]" | mercantile shapes --indent 2 --precision 6
     {
       "features": [
         {
@@ -99,17 +99,17 @@ bounding box.
 
 .. code-block:: console
 
-    $ echo "[-104.99, 39.99, -105, 40]" | mercantile tiles - 14
-    [3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]
-    [3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]
+    $ echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14
+    [3413, 6202, 14]
+    [3413, 6203, 14]
 
 The commands can be piped together to do this:
 
 .. code-block:: console
 
     $ echo "[-104.99, 39.99, -105, 40]" \
-    > | mercantile tiles - 14 \
-    > | mercantile shapes - --indent 2 --precision 6
+    > | mercantile tiles 14 \
+    > | mercantile shapes --indent 2 --precision 6
     {
       "features": [
         {
@@ -191,8 +191,8 @@ installed, you can shoot this GeoJSON straight to `geojson.io
 .. code-block:: console
 
     $ echo "[-104.99, 39.99, -105, 40]" \
-    > | mercantile tiles - 14 \
-    > | mercantile shapes - --compact \
+    > | mercantile tiles 14 \
+    > | mercantile shapes --compact \
     > | geojsonio
 
 See Also

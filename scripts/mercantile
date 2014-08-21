@@ -45,7 +45,7 @@ def cli(ctx, verbose, quiet):
 @click.argument('input', default='-', required=False)
 
 # Coordinate precision option.
-@click.option('--precision', type=int, default=-1,
+@click.option('--precision', type=int, default=None,
               help="Decimal precision of coordinates.")
 
 # JSON formatting options.
@@ -143,9 +143,9 @@ def shapes(
                 south -= buffer
                 east += buffer
                 north += buffer
-            if precision >= 0:
+            if precision and precision >= 0:
                 west, south, east, north = (
-                    round(v, 6) for v in (west, south, east, north))
+                    round(v, precision) for v in (west, south, east, north))
             bbox = [
                 min(west, east), min(south, north), 
                 max(west, east), max(south, north)]

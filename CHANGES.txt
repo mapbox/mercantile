@@ -1,11 +1,13 @@
 Changes
 =======
 
-Next
-----
+0.4 (2014-08-21)
+----------------
 - Add option for RS-deliminted JSON sequences.
 - Transparent handling of file, stream, and text input (#11).
 - Add buffering option (#13).
+- Add --extents option to mercantile shapes (#14, #16).
+- Round coordinates to proper precision.
 
 0.3 (2014-08-19)
 ----------------

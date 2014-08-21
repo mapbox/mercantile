@@ -66,16 +66,16 @@ def test_cli_shapes_buffer():
 
 def test_cli_shapes_extents():
     result = subprocess.check_output(
-        'mercantile shapes "[106, 193, 9]" --extents --mercator',
+        'mercantile shapes "[106, 193, 9]" --extents --mercator --precision 3',
         shell=True)
-    assert result.decode('utf-8').strip() == '-11740727.5446 4852834.05177 -11662456.0276 4931105.56873'
+    assert result.decode('utf-8').strip() == '-11740727.545 4852834.052 -11662456.028 4931105.569'
+
 
 def test_cli_tiles_no_bounds():
     result = subprocess.check_output(
         'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14',
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
-
 
 def test_cli_tiles():
     result = subprocess.check_output(
