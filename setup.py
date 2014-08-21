@@ -10,11 +10,17 @@ with open('mercantile/__init__.py') as f:
             version = version.strip("'")
             continue
 
+open_kwds = {}
+if sys.version_info > (3,):
+    open_kwds['encoding'] = 'utf-8'
+
+with open('README.rst', **open_kwds) as f:
+    readme = f.read()
+
 setup(name='mercantile',
       version=version,
       description="Spherical mercator and XYZ tile utilities",
-      long_description="""\
-""",
+      long_description=readme,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
       author='Sean Gillies',

@@ -42,13 +42,12 @@ that intersect with a GeoJSON bounding box.
       shapes  Write the shapes of tiles as GeoJSON.
       tiles   List tiles intersecting a lng/lat bounding box.
 
-
 shapes
 ------
 
 The shapes command writes Mercator tile shapes to several forms of GeoJSON.
 
-.. code-block:: 
+.. code-block:: console
 
     $ echo "[106, 193, 9]" | mercantile shapes --indent 2 --precision 6
     {
@@ -196,7 +195,7 @@ installed, you can shoot this GeoJSON straight to `geojson.io
     > | geojsonio
 
 See Also
---------
+========
 
 `node-sphericalmercator <https://github.com/mapbox/node-sphericalmercator>`__
 provides many of the same features for Node.
