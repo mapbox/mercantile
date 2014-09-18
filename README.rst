@@ -199,3 +199,6 @@ See Also
 
 `node-sphericalmercator <https://github.com/mapbox/node-sphericalmercator>`__
 provides many of the same features for Node.
+
+`tilebelt <https://github.com/mapbox/tilebelt>`__ has some of the GeoJSON features
+as mercantile and a few more (tile parents, quadkey).
