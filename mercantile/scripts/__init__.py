@@ -74,7 +74,7 @@ def cli(ctx, verbose, quiet):
 # Optionally buffer the shapes by shifting the x and y values of each
 # vertex by a constant number of decimal degrees or meters (depending
 # on whether --geographic or --mercator is in effect).
-@click.option('--buffer', type=float, default=0.0,
+@click.option('--buffer', type=float, default=None,
               help="Shift shape x and y values by a constant number")
 @click.pass_context
 def shapes(
@@ -109,7 +109,7 @@ def shapes(
             if projected == 'mercator':
                 west, south = mercantile.xy(west, south)
                 east, north = mercantile.xy(east, north)
-            if buffer > 0:
+            if buffer:
                 west -= buffer
                 south -= buffer
                 east += buffer
@@ -168,7 +168,8 @@ def shapes(
 
 
 # The tiles command.
-@cli.command(short_help="List tiles intersecting a lng/lat bounding box.")
+@cli.command(short_help="List tiles overlapped or contained by a lng/lat "
+                        "bounding box.")
 # Mandatory Mercator zoom level argument.
 @click.argument('zoom', type=int, required=True)
 # This input is either a filename, stdin, or a string.
@@ -217,10 +218,17 @@ def tiles(ctx, zoom, input, bounds):
                 bbox = data['bbox']
                 # TODO: compute a bounding box from coordinates.
             west, south, east, north = bbox
+            # shrink the bounds a small amount so that
+            # shapes/tiles round trip.
+            west += 1.0e-10
+            south += 1.0e-10
+            east -= 1.0e-10
+            north -= 1.0e-10
             minx, miny, _ = mercantile.tile(west, north, zoom)
             maxx, maxy, _ = mercantile.tile(east, south, zoom)
             logger.debug("Tile ranges [%d:%d, %d:%d]",
                          minx, maxx, miny, maxy)
+            maxy = min(miny+1, maxy)
             for x in range(minx, maxx+1):
                 for y in range(miny, maxy+1):
                     vals = (x, y, zoom)

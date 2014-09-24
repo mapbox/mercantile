@@ -100,3 +100,12 @@ def test_cli_children():
 [487, 333, 10]
 [486, 333, 10]
 """.strip()
+
+
+def test_cli_strict_overlap_contain():
+    result = subprocess.check_output(
+        'mercantile shapes "[2331,1185,12]" | mercantile tiles 12',
+        shell=True)
+    assert result.decode('utf-8').strip() == """
+[2331, 1185, 12]
+""".strip()

@@ -1,9 +1,10 @@
 Changes
 =======
 
-0.5
----
+0.5 (2014-09-24)
+----------------
 - Add mercantile parent and children commands (#17).
+- Fix numerical precision bug in roundtripping shapes/tiles (#19).
 
 0.4 (2014-08-21)
 ----------------
