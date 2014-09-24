@@ -1,3 +1,4 @@
+import json
 import subprocess
 
 import mercantile
@@ -42,25 +43,26 @@ def test_cli_tiles_no_bounds():
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
-def test_cli_tiles():
+def test_cli_tiles_bounds():
     result = subprocess.check_output(
         'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14 - --bounds',
         shell=True)
-    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'
+    first, last = result.decode('utf-8').strip().split('\n')
+    assert [round(x, 3) for x in json.loads(first)][3:] == [-105.007, 39.994, -104.985, 40.011]
 
 
 def test_cli_tiles_implicit_stdin():
     result = subprocess.check_output(
-        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14 --bounds',
+        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14',
         shell=True)
-    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'
+    assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
 
 def test_cli_tiles_arg():
     result = subprocess.check_output(
-        'mercantile tiles 14 "[-104.99, 39.99, -105, 40]" --bounds',
+        'mercantile tiles 14 "[-104.99, 39.99, -105, 40]"',
         shell=True)
-    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'
+    assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
 def test_cli_parent():
     result = subprocess.check_output(

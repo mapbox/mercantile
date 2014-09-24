@@ -55,13 +55,13 @@ def parent(*tile):
     xtile, ytile, zoom = tile
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
     if xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile(xtile/2, ytile/2, zoom-1)
+        return Tile(xtile//2, ytile//2, zoom-1)
     elif xtile % 2 == 0:
-        return Tile(xtile/2, (ytile-1)/2, zoom-1)
+        return Tile(xtile//2, (ytile-1)//2, zoom-1)
     elif not xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile((xtile-1)/2, ytile/2, zoom-1)
+        return Tile((xtile-1)//2, ytile//2, zoom-1)
     else:
-        return Tile((xtile-1)/2, (ytile-1)/2, zoom-1)
+        return Tile((xtile-1)//2, (ytile-1)//2, zoom-1)
 
 
 def children(*tile):
