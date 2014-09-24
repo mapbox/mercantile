@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.5
+---
+- Add mercantile parent and children commands (#17).
+
 0.4 (2014-08-21)
 ----------------
 - Add option for RS-deliminted JSON sequences.

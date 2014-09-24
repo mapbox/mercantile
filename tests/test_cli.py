@@ -1,42 +1,8 @@
+import json
 import subprocess
 
 import mercantile
 
-def test_ul():
-    expected = (-9.140625, 53.33087298301705)
-    lnglat = mercantile.ul(486, 332, 10)
-    for a, b in zip(expected, lnglat):
-        assert round(a-b, 7) == 0
-    assert lnglat[0] == lnglat.lng
-    assert lnglat[1] == lnglat.lat
-
-def test_bbox():
-    expected = (-9.140625, 53.12040528310657, -8.7890625, 53.33087298301705)
-    bbox = mercantile.bounds(486, 332, 10)
-    for a, b in zip(expected, bbox):
-        assert round(a-b, 7) == 0
-    assert bbox.west == bbox[0]
-    assert bbox.south == bbox[1]
-    assert bbox.east == bbox[2]
-    assert bbox.north == bbox[3]
-
-def test_xy():
-    ul = mercantile.ul(486, 332, 10)
-    xy = mercantile.xy(*ul)
-    expected = (-1017529.7205322663, 7044436.526761846)
-    for a, b in zip(expected, xy):
-        assert round(a-b, 7) == 0
-    xy = mercantile.xy(0.0, 0.0)
-    expected = (0.0, 0.0)
-    for a, b in zip(expected, xy):
-        assert round(a-b, 7) == 0
-
-
-def test_tile():
-    tile = mercantile.tile(20.6852, 40.1222, 9)
-    expected = (285, 193)
-    assert tile[0] == expected[0]
-    assert tile[1] == expected[1]
 
 def test_cli_shapes():
     result = subprocess.check_output(
@@ -77,22 +43,60 @@ def test_cli_tiles_no_bounds():
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
-def test_cli_tiles():
+def test_cli_tiles_bounds():
     result = subprocess.check_output(
         'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14 - --bounds',
         shell=True)
-    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'
+    first, last = result.decode('utf-8').strip().split('\n')
+    assert [round(x, 3) for x in json.loads(first)][3:] == [-105.007, 39.994, -104.985, 40.011]
 
 
 def test_cli_tiles_implicit_stdin():
     result = subprocess.check_output(
-        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14 --bounds',
+        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14',
         shell=True)
-    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'
+    assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
 
 def test_cli_tiles_arg():
     result = subprocess.check_output(
-        'mercantile tiles 14 "[-104.99, 39.99, -105, 40]" --bounds',
+        'mercantile tiles 14 "[-104.99, 39.99, -105, 40]"',
         shell=True)
-    assert result.decode('utf-8').strip() == '[3413, 6202, 14, -105.00732421875, 39.9939556939733, -104.9853515625, 40.01078714046552]\n[3413, 6203, 14, -105.00732421875, 39.977120098439634, -104.9853515625, 39.9939556939733]'
+    assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
+
+def test_cli_parent():
+    result = subprocess.check_output(
+        'echo "[486, 332, 10]\n[486, 332, 10]" | mercantile parent',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[243, 166, 9]\n[243, 166, 9]'
+
+def test_cli_grandparent():
+    result = subprocess.check_output(
+        'echo "[486, 332, 10]" | mercantile parent | mercantile parent',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[121, 83, 8]'
+
+def test_cli_parent_depth():
+    result = subprocess.check_output(
+        'echo "[486, 332, 10]" | mercantile parent --depth 2',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[121, 83, 8]'
+
+
+def test_cli_parent_multidepth():
+    result = subprocess.check_output(
+        'echo "[486, 332, 10]\n[121, 83, 8]" | mercantile parent --depth 2',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[121, 83, 8]\n[30, 20, 6]'
+
+
+def test_cli_children():
+    result = subprocess.check_output(
+        'echo "[243, 166, 9]" | mercantile children',
+        shell=True)
+    assert result.decode('utf-8').strip() == """
+[486, 332, 10]
+[487, 332, 10]
+[487, 333, 10]
+[486, 333, 10]
+""".strip()

@@ -29,12 +29,9 @@ setup(name='mercantile',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
-      scripts = ['scripts/mercantile'],
       zip_safe=False,
-      install_requires=[
-          # -*- Extra requirements: -*-
-      ],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
-      )
+      install_requires=['click'],
+      entry_points='''
+      [console_scripts]
+      mercantile=mercantile.scripts:cli
+      ''')
