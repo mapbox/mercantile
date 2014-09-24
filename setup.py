@@ -18,7 +18,7 @@ with open('README.rst', **open_kwds) as f:
     readme = f.read()
 
 setup(name='mercantile',
-      version=version,
+    version=version,
       description="Spherical mercator and XYZ tile utilities",
       long_description=readme,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -29,12 +29,12 @@ setup(name='mercantile',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
-      scripts = ['scripts/mercantile'],
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
       ],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
-      )
+    entry_points='''
+    [console_scripts]
+    mercantile=mercantile.scripts:cli
+    ''',
+    )

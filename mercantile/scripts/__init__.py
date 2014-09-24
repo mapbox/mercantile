@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 
 """Mercantile command line interface
-
-Example usage:
-
-  $ echo "POINT (0.9999999 0.9999999)" \
-  > | geomet --wkb \
-  > | geomet --wkt --precision 7
-  POINT (0.9999999 0.9999999)
-
 """
 
 import json
@@ -251,8 +243,8 @@ def tiles(ctx, zoom, input, bounds):
                 bbox = data['bbox']
                 # TODO: compute a bounding box from coordinates.
             west, south, east, north = bbox
-            minx, miny = mercantile.tile(west, north, zoom)
-            maxx, maxy = mercantile.tile(east, south, zoom)
+            minx, miny, _ = mercantile.tile(west, north, zoom)
+            maxx, maxy, _ = mercantile.tile(east, south, zoom)
             logger.debug("Tile ranges [%d:%d, %d:%d]",
                          minx, maxx, miny, maxy)
             for x in range(minx, maxx+1):
@@ -263,6 +255,87 @@ def tiles(ctx, zoom, input, bounds):
                     output = json.dumps(vals)
                     stdout.write(output)
                     stdout.write('\n')
+        sys.exit(0)
+    except Exception:
+        logger.exception("Failed. Exception caught")
+        sys.exit(1)
+
+
+# The children command.
+@cli.command(short_help="Write the children of the tile.")
+@click.argument('input', default='-', required=False)
+@click.option('--depth', type=int, default=1,
+    help="Number of zoom levels to traverse (default is 1).")
+@click.pass_context
+def children(ctx, input, depth):
+    """Takes a [x, y, z] tile as input and writes its children to stdout
+    in the same form.
+
+    $ echo "[486, 332, 10]" | mercantile parent
+
+    Output:
+
+    [243, 166, 9]
+    """
+    verbosity = ctx.obj['verbosity']
+    logger = logging.getLogger('mercantile')
+    try:
+        src = click.open_file(input).readlines()
+    except IOError:
+        src = [input]
+    stdout = click.get_text_stream('stdout')
+
+    try:
+        for line in src:
+            line = line.strip()
+            tiles = [json.loads(line)[:3]]
+            for i in range(depth):
+                tiles = sum([mercantile.children(t) for t in tiles], [])
+            for t in tiles:
+                output = json.dumps(t)
+                stdout.write(output)
+                stdout.write('\n')
+        sys.exit(0)
+    except Exception:
+        logger.exception("Failed. Exception caught")
+        sys.exit(1)
+
+
+# The parent command.
+@cli.command(short_help="Write the parent tile.")
+@click.argument('input', default='-', required=False)
+@click.option('--depth', type=int, default=1,
+    help="Number of zoom levels to traverse (default is 1).")
+@click.pass_context
+def parent(ctx, input, depth):
+    """Takes a [x, y, z] tile as input and writes its parent to stdout
+    in the same form.
+
+    $ echo "[486, 332, 10]" | mercantile parent
+
+    Output:
+
+    [243, 166, 9]
+    """
+    verbosity = ctx.obj['verbosity']
+    logger = logging.getLogger('mercantile')
+    try:
+        src = click.open_file(input).readlines()
+    except IOError:
+        src = [input]
+    stdout = click.get_text_stream('stdout')
+
+    try:
+        for line in src:
+            line = line.strip()
+            tile = json.loads(line)[:3]
+            if tile[2] - depth < 0:
+                raise ValueError("Maximum depth exceeded.")
+            for i in range(depth):
+                tile = mercantile.parent(tile)
+            output = json.dumps(tile)
+            stdout.write(output)
+            stdout.write('\n')
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")
