@@ -64,6 +64,14 @@ def test_cli_tiles_arg():
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
+def test_cli_tiles_geosjon():
+    collection = {"features": [{"geometry": {"coordinates": [[[-105.46875, 39.909736], [-105.46875, 40.446947], [-104.765625, 40.446947], [-104.765625, 39.909736], [-105.46875, 39.909736]]], "type": "Polygon"}, "id": "(106, 193, 9)", "properties": {"title": "XYZ tile (106, 193, 9)"}, "type": "Feature"}], "type": "FeatureCollection"}
+    result = subprocess.check_output(
+        "echo '%s' | mercantile tiles 9" % json.dumps(collection),
+        shell=True)
+    result.decode('utf-8').strip() == '[]'
+
+
 def test_cli_parent():
     result = subprocess.check_output(
         'echo "[486, 332, 10]\n[486, 332, 10]" | mercantile parent',

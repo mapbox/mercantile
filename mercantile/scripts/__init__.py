@@ -15,6 +15,24 @@ def configure_logging(verbosity):
     logging.basicConfig(stream=sys.stderr, level=log_level)
 
 
+def coords(obj):
+    """Yield all coordinate coordinate tuples from a geometry or feature.
+    From python-geojson package."""
+    if isinstance(obj, (tuple, list)):
+        coordinates = obj
+    elif 'geometry' in obj:
+        coordinates = obj['geometry']['coordinates']
+    else:
+        coordinates = obj.get('coordinates', obj)
+    for e in coordinates:
+        if isinstance(e, (float, int)):
+            yield tuple(coordinates)
+            break
+        else:
+            for f in coords(e):
+                yield f
+
+
 # The CLI command group.
 @click.group(help="Command line interface for the Mercantile Python package.")
 @click.option('--verbose', '-v', count=True, help="Increase verbosity.")
@@ -215,8 +233,16 @@ def tiles(ctx, zoom, input, bounds):
             if isinstance(data, list):
                 bbox = data
             elif isinstance(data, dict):
-                bbox = data['bbox']
-                # TODO: compute a bounding box from coordinates.
+                if 'bbox' in data:
+                    bbox = data['bbox']
+                else:
+                    box_xs = []
+                    box_ys = []
+                    for feat in data['features']:
+                        lngs, lats = zip(*list(coords(feat)))
+                        box_xs.extend([min(lngs), max(lngs)])
+                        box_ys.extend([min(lats), max(lats)])
+                    bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
             west, south, east, north = bbox
             # shrink the bounds a small amount so that
             # shapes/tiles round trip.

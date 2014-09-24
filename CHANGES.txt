@@ -5,6 +5,7 @@ Changes
 ----------------
 - Add mercantile parent and children commands (#17).
 - Fix numerical precision bug in roundtripping shapes/tiles (#19).
+- Compute bbox if input GeoJSON doesn't provide one (#23).
 
 0.4 (2014-08-21)
 ----------------
