@@ -2,6 +2,8 @@
 Mercantile
 ==========
 
+.. image:: https://travis-ci.org/mapbox/mercantile.svg
+
 Spherical mercator coordinate and tile utilities
 
 The mercantile module provides ``ul(xtile, ytile, zoom)`` and ``bounds(xtile,
