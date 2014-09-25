@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.5.1 (2014-09-25)
+------------------
+- Let mercantile tiles accept point input as well as bbox or GeojSON.
+
 0.5 (2014-09-24)
 ----------------
 - Add mercantile parent and children commands (#17).

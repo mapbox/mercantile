@@ -186,8 +186,8 @@ def shapes(
 
 
 # The tiles command.
-@cli.command(short_help="List tiles overlapped or contained by a lng/lat "
-                        "bounding box.")
+@cli.command(short_help="List tiles that overlap or contain a lng/lat point, "
+                        "bounding box, or GeoJSON objects.")
 # Mandatory Mercator zoom level argument.
 @click.argument('zoom', type=int, required=True)
 # This input is either a filename, stdin, or a string.
@@ -262,6 +262,10 @@ def tiles(ctx, zoom, input, bounds, x_json_seq):
         for obj in source:
             if isinstance(obj, list):
                 bbox = obj
+                if len(bbox) == 2:
+                    bbox += bbox
+                if len(bbox) != 4:
+                    raise ValueError("Invalid input.")
             elif isinstance(obj, dict):
                 if 'bbox' in obj:
                     bbox = obj['bbox']
