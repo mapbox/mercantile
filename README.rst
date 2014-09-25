@@ -3,6 +3,7 @@ Mercantile
 ==========
 
 .. image:: https://travis-ci.org/mapbox/mercantile.svg
+   :target: https://travis-ci.org/mapbox/mercantile
 
 Spherical mercator coordinate and tile utilities
 
