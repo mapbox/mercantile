@@ -7,19 +7,33 @@ Mercantile
 Spherical mercator coordinate and tile utilities
 
 The mercantile module provides ``ul(xtile, ytile, zoom)`` and ``bounds(xtile,
-ytile, zoom)`` functions that return longitudes and latitudes for XYZ tiles,
-and a ``xy(lon, lat)`` function that returns spherical mercator x and
-y coordinates.
+ytile, zoom)`` functions that respectively return the upper left corner and
+bounding longitudes and latitudes for XYZ tiles, a ``xy(lng, lat)`` function
+that returns spherical mercator x and y coordinates, and a ``tile(lng, lat,
+zoom)`` function that returns the tile containing a given point.
 
 .. code-block:: pycon
 
     >>> import mercantile
     >>> mercantile.ul(486, 332, 10)
-    (-9.140625, 53.33087298301705)
+    LngLat(lng=-9.140625, lat=53.33087298301705)
     >>> mercantile.bounds(486, 332, 10)
-    (-9.140625, 53.12040528310657, -8.7890625, 53.33087298301705)
+    LngLatBbox(west=-9.140625, south=53.12040528310657, east=-8.7890625, north=53.33087298301705)
     >>> mercantile.xy(*mercantile.ul(486, 332, 10))
     (-1017529.7205322663, 7044436.526761846)
+    >>> mercantile.tile(*mercantile.ul(486, 332, 10) + (10,))
+    Tile(x=486, y=332, z=10)
+
+Also in mercantile are functions to traverse the tile stack.
+
+.. code-block:: pycon
+
+    >>> mercantile.parent(486, 332, 10)
+    Tile(x=243, y=166, z=9)
+    >>> mercantile.children(mercantile.parent(486, 332, 10))
+    [Tile(x=486, y=332, z=10), Tile(x=487, y=332, z=10), Tile(x=487, y=333, z=10), Tile(x=486, y=333, z=10)]
+
+Named tuples are used to represent tiles, coordinates, and bounding boxes.
 
 Mercantile CLI
 ==============
@@ -30,10 +44,10 @@ that intersect with a GeoJSON bounding box.
 
 .. code-block:: console
 
-    $ mercantile --help
+    $ mercantile
     Usage: mercantile [OPTIONS] COMMAND [ARGS]...
 
-      Mercantile command line interface.
+      Command line interface for the Mercantile Python package.
 
     Options:
       -v, --verbose  Increase verbosity.
@@ -41,160 +55,14 @@ that intersect with a GeoJSON bounding box.
       --help         Show this message and exit.
 
     Commands:
-      shapes  Write the shapes of tiles as GeoJSON.
-      tiles   List tiles intersecting a lng/lat bounding box.
+      children  Write the children of the tile.
+      parent    Write the parent tile.
+      shapes    Write the shapes of tiles as GeoJSON.
+      tiles     List tiles that overlap or contain a lng/lat point, bounding box,
+                or GeoJSON objects.
 
-shapes
-------
+See `docs/cli.rst <docs/cli.rst>`__ for more about the mercantile program.
 
-The shapes command writes Mercator tile shapes to several forms of GeoJSON.
-
-.. code-block:: console
-
-    $ echo "[106, 193, 9]" | mercantile shapes --indent 2 --precision 6
-    {
-      "features": [
-        {
-          "geometry": {
-            "coordinates": [
-              [
-                [
-                  -105.46875,
-                  39.909736
-                ],
-                [
-                  -105.46875,
-                  40.446947
-                ],
-                [
-                  -104.765625,
-                  40.446947
-                ],
-                [
-                  -104.765625,
-                  39.909736
-                ],
-                [
-                  -105.46875,
-                  39.909736
-                ]
-              ]
-            ],
-            "type": "Polygon"
-          },
-          "id": "(106, 193, 9)",
-          "properties": {
-            "title": "XYZ tile (106, 193, 9)"
-          },
-          "type": "Feature"
-        }
-      ],
-      "type": "FeatureCollection"
-    }
-
-tiles
------
-
-The tiles command writes descriptions of tiles intersecting with a geographic
-bounding box.
-
-.. code-block:: console
-
-    $ echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14
-    [3413, 6202, 14]
-    [3413, 6203, 14]
-
-The commands can be piped together to do this:
-
-.. code-block:: console
-
-    $ echo "[-104.99, 39.99, -105, 40]" \
-    > | mercantile tiles 14 \
-    > | mercantile shapes --indent 2 --precision 6
-    {
-      "features": [
-        {
-          "geometry": {
-            "coordinates": [
-              [
-                [
-                  -105.007324,
-                  39.993956
-                ],
-                [
-                  -105.007324,
-                  40.010787
-                ],
-                [
-                  -104.985352,
-                  40.010787
-                ],
-                [
-                  -104.985352,
-                  39.993956
-                ],
-                [
-                  -105.007324,
-                  39.993956
-                ]
-              ]
-            ],
-            "type": "Polygon"
-          },
-          "id": "(3413, 6202, 14)",
-          "properties": {
-            "title": "XYZ tile (3413, 6202, 14)"
-          },
-          "type": "Feature"
-        },
-        {
-          "geometry": {
-            "coordinates": [
-              [
-                [
-                  -105.007324,
-                  39.97712
-                ],
-                [
-                  -105.007324,
-                  39.993956
-                ],
-                [
-                  -104.985352,
-                  39.993956
-                ],
-                [
-                  -104.985352,
-                  39.97712
-                ],
-                [
-                  -105.007324,
-                  39.97712
-                ]
-              ]
-            ],
-            "type": "Polygon"
-          },
-          "id": "(3413, 6203, 14)",
-          "properties": {
-            "title": "XYZ tile (3413, 6203, 14)"
-          },
-          "type": "Feature"
-        }
-      ],
-      "type": "FeatureCollection"
-    }
-
-If you have `geojsonio-cli <https://github.com/mapbox/geojsonio-cli>`__
-installed, you can shoot this GeoJSON straight to `geojson.io
-<http://geojson.io/>`__ for lightning-fast visualization and editing.
-
-.. code-block:: console
-
-    $ echo "[-104.99, 39.99, -105, 40]" \
-    > | mercantile tiles 14 \
-    > | mercantile shapes --compact \
-    > | geojsonio
 
 See Also
 ========
@@ -202,5 +70,5 @@ See Also
 `node-sphericalmercator <https://github.com/mapbox/node-sphericalmercator>`__
 provides many of the same features for Node.
 
-`tilebelt <https://github.com/mapbox/tilebelt>`__ has some of the GeoJSON features
-as mercantile and a few more (tile parents, quadkey).
+`tilebelt <https://github.com/mapbox/tilebelt>`__ has some of the GeoJSON
+features as mercantile and a few more (tile parents, quadkey).
