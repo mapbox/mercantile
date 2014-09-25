@@ -198,12 +198,15 @@ def shapes(
 @click.option('--bounds/--no-bounds', default=False,
               help="Append [w, s, e, n] tile bounds to output "
                    "(default is False).")
+@click.option('--x-json-seq/--x-json-obj', default=False,
+              help="Read a LF-delimited JSON sequence (default is object). "
+                   "Experimental.")
 @click.pass_context
-def tiles(ctx, zoom, input, bounds):
+def tiles(ctx, zoom, input, bounds, x_json_seq):
     """Lists Web Mercator tiles at ZOOM level intersecting
-    a GeoJSON [west, south, east, north] bounding box read from stdin.
-    Output is a JSON [x, y, z [, west, south, east, north -- optional]]
-    array.
+    GeoJSON [west, south, east, north] bounding boxen, features, or
+    collections read from stdin. Output is a JSON 
+    [x, y, z [, west, south, east, north -- optional]] array.
 
     Example:
 
@@ -224,21 +227,48 @@ def tiles(ctx, zoom, input, bounds):
     except IOError:
         src = [input]
     stdout = click.get_text_stream('stdout')
+
+    src = iter(src)
+    first_line = next(src)
+
+    # If input is RS-delimited JSON sequence.
+    if first_line.startswith(u'\x1e'):
+        def feature_gen():
+            buffer = first_line.strip(u'\x1e')
+            for line in src:
+                if line.startswith(u'\x1e'):
+                    if buffer:
+                        yield json.loads(buffer)
+                    buffer = line.strip(u'\x1e')
+                else:
+                    buffer += line
+            else:
+                yield json.loads(buffer)
+    elif x_json_seq:
+        def feature_gen():
+            yield json.loads(first_line)
+            for line in src:
+                yield json.loads(line)
+    else:
+        def feature_gen():
+            logger.debug("Text a: %s", first_line)
+            remainder = " ".join(list(src))
+            logger.debug("Text b: %s", remainder)
+            yield json.loads(first_line + remainder)
+
     try:
+        source = feature_gen()
         # Detect the input format
-        for line in src:
-            line = line.strip()
-            # Get a bounding box from the input
-            data = json.loads(line)
-            if isinstance(data, list):
-                bbox = data
-            elif isinstance(data, dict):
-                if 'bbox' in data:
-                    bbox = data['bbox']
+        for obj in source:
+            if isinstance(obj, list):
+                bbox = obj
+            elif isinstance(obj, dict):
+                if 'bbox' in obj:
+                    bbox = obj['bbox']
                 else:
                     box_xs = []
                     box_ys = []
-                    for feat in data['features']:
+                    for feat in obj.get('features', [obj]):
                         lngs, lats = zip(*list(coords(feat)))
                         box_xs.extend([min(lngs), max(lngs)])
                         box_ys.extend([min(lats), max(lats)])
