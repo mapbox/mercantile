@@ -42,9 +42,9 @@ def tile(lng, lat, zoom):
     """Returns the (x, y, z) tile"""
     lat = math.radians(lat)
     n = 2.0**zoom
-    xtile = math.floor((lng + 180.0) / 360.0*n)
-    ytile = math.floor((1.0 - math.log(
-        math.tan(lat) + (1.0/math.cos(lat))) / math.pi) / 2.0*n)
+    xtile = int(math.floor((lng + 180.0) / 360.0*n))
+    ytile = int(math.floor((1.0 - math.log(
+        math.tan(lat) + (1.0/math.cos(lat))) / math.pi) / 2.0*n))
     return Tile(xtile, ytile, zoom)
 
 

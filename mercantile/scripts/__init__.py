@@ -254,7 +254,6 @@ def tiles(ctx, zoom, input, bounds):
             maxx, maxy, _ = mercantile.tile(east, south, zoom)
             logger.debug("Tile ranges [%d:%d, %d:%d]",
                          minx, maxx, miny, maxy)
-            maxy = min(miny+1, maxy)
             for x in range(minx, maxx+1):
                 for y in range(miny, maxy+1):
                     vals = (x, y, zoom)
