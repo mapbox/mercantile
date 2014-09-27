@@ -78,7 +78,7 @@ def children(*tile):
 
 def bounding_tile(*bbox):
     """Returns the smallest tile containing the bbox.
-    
+
     NB: when the bbox spans lines of lng 0 or lat 0, the bounding tile
     will be (0, 0, 0)."""
     if len(bbox) == 2:
@@ -99,7 +99,7 @@ def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
         mask = 1 << (32 - (z + 1))
-        if ((bbox[0] & mask) != (bbox[2] & mask) 
-            or (bbox[1] & mask) != (bbox[3] & mask)):
+        if ((bbox[0] & mask) != (bbox[2] & mask)
+                or (bbox[1] & mask) != (bbox[3] & mask)):
             return z
     return MAX_ZOOM

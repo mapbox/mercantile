@@ -39,13 +39,25 @@ def test_cli_shapes_extents():
 
 def test_cli_tiles_no_bounds():
     result = subprocess.check_output(
-        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14',
+        'echo "[-105, 39.99, -104.99, 40]" | mercantile tiles 14',
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
+def test_cli_tiles_bounding_tiles():
+    result = subprocess.check_output(
+        'echo "[-105, 39.99, -104.99, 40]" | mercantile tiles --bounding-tile',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[1706, 3101, 13]'
+
+def test_cli_tiles_bounding_tiles_z0():
+    result = subprocess.check_output(
+        'echo "[-1, -1, 1, 1]" | mercantile tiles --bounding-tile',
+        shell=True)
+    assert result.decode('utf-8').strip() == '[0, 0, 0]'
+
 def test_cli_tiles_bounds():
     result = subprocess.check_output(
-        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14 - --bounds',
+        'echo "[-105, 39.99, -104.99, 40]" | mercantile tiles 14 - --with-bounds',
         shell=True)
     first, last = result.decode('utf-8').strip().split('\n')
     assert [round(x, 3) for x in json.loads(first)][3:] == [-105.007, 39.994, -104.985, 40.011]
@@ -53,14 +65,14 @@ def test_cli_tiles_bounds():
 
 def test_cli_tiles_implicit_stdin():
     result = subprocess.check_output(
-        'echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14',
+        'echo "[-105, 39.99, -104.99, 40]" | mercantile tiles 14',
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 
 
 def test_cli_tiles_arg():
     result = subprocess.check_output(
-        'mercantile tiles 14 "[-104.99, 39.99, -105, 40]"',
+        'mercantile tiles 14 "[-105, 39.99, -104.99, 40]"',
         shell=True)
     assert result.decode('utf-8').strip() == '[3413, 6202, 14]\n[3413, 6203, 14]'
 

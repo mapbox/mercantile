@@ -189,23 +189,24 @@ def shapes(
 @cli.command(short_help="List tiles that overlap or contain a lng/lat point, "
                         "bounding box, or GeoJSON objects.")
 # Mandatory Mercator zoom level argument.
-@click.argument('zoom', type=int, required=True)
+@click.argument('zoom', type=int, default=-1)
 # This input is either a filename, stdin, or a string.
 # Has to follow the zoom arg.
 @click.argument('input', default='-', required=False)
+@click.option('--bounding-tile/--zoom-tiles', default=False)
 # Optionally append [west, south, east, north] bounds of the tile to
 # the output array.
-@click.option('--bounds/--no-bounds', default=False,
+@click.option('--with-bounds/--without-bounds', default=False,
               help="Append [w, s, e, n] tile bounds to output "
                    "(default is False).")
 @click.option('--x-json-seq/--x-json-obj', default=False,
               help="Read a LF-delimited JSON sequence (default is object). "
                    "Experimental.")
 @click.pass_context
-def tiles(ctx, zoom, input, bounds, x_json_seq):
+def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
     """Lists Web Mercator tiles at ZOOM level intersecting
     GeoJSON [west, south, east, north] bounding boxen, features, or
-    collections read from stdin. Output is a JSON 
+    collections read from stdin. Output is a JSON
     [x, y, z [, west, south, east, north -- optional]] array.
 
     Example:
@@ -278,24 +279,30 @@ def tiles(ctx, zoom, input, bounds, x_json_seq):
                         box_ys.extend([min(lats), max(lats)])
                     bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
             west, south, east, north = bbox
-            # shrink the bounds a small amount so that
-            # shapes/tiles round trip.
-            west += 1.0e-10
-            south += 1.0e-10
-            east -= 1.0e-10
-            north -= 1.0e-10
-            minx, miny, _ = mercantile.tile(west, north, zoom)
-            maxx, maxy, _ = mercantile.tile(east, south, zoom)
-            logger.debug("Tile ranges [%d:%d, %d:%d]",
-                         minx, maxx, miny, maxy)
-            for x in range(minx, maxx+1):
-                for y in range(miny, maxy+1):
-                    vals = (x, y, zoom)
-                    if bounds:
-                        vals += mercantile.bounds(x, y, zoom)
-                    output = json.dumps(vals)
-                    stdout.write(output)
-                    stdout.write('\n')
+            if bounding_tile:
+                vals = mercantile.bounding_tile(west, south, east, north)
+                output = json.dumps(vals)
+                stdout.write(output)
+                stdout.write('\n')
+            else:
+                # shrink the bounds a small amount so that
+                # shapes/tiles round trip.
+                west += 1.0e-10
+                south += 1.0e-10
+                east -= 1.0e-10
+                north -= 1.0e-10
+                minx, miny, _ = mercantile.tile(west, north, zoom)
+                maxx, maxy, _ = mercantile.tile(east, south, zoom)
+                logger.debug("Tile ranges [%d:%d, %d:%d]",
+                             minx, maxx, miny, maxy)
+                for x in range(minx, maxx+1):
+                    for y in range(miny, maxy+1):
+                        vals = (x, y, zoom)
+                        if with_bounds:
+                            vals += mercantile.bounds(x, y, zoom)
+                        output = json.dumps(vals)
+                        stdout.write(output)
+                        stdout.write('\n')
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")
