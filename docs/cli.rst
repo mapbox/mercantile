@@ -93,20 +93,46 @@ The shapes command writes Mercator tile shapes to several forms of GeoJSON.
 tiles
 -----
 
-The tiles command writes descriptions of tiles intersecting with a geographic
-point, bounding box, or GeoJSON object.
+With the tiles command you can write descriptions of tiles intersecting with
+a geographic point, bounding box, or GeoJSON object.
 
 .. code-block:: console
 
-    $ echo "[-104.99, 39.99, -105, 40]" | mercantile tiles 14
+    $ echo "[-105, 39.99, -104.99, 40]" | mercantile tiles 14
     [3413, 6202, 14]
     [3413, 6203, 14]
+
+Optionally, you can write the input's bounding tile, the smallest mercator
+tile of any resolution that completely contains the input.
+
+.. code-block:: console
+
+    $ echo "[-105, 39.99, -104.99, 40]" | mercantile tiles --bounding-tile
+    [1706, 3101, 13]
+
+Note well that when the input crosses lng 0 or lat 0, or any such tile 
+boundary, the bounding tile will be at a shallow zoom level.
+
+.. code-block:: console
+
+    $ echo "[-1, 1, 1, 2]" | mercantile tiles --bounding-tile
+    [0, 0, 0]
+    $ echo "[-91, 1, -89, 2]" | mercantile tiles --bounding-tile
+    [0, 0, 1]
+
+Compare these bounding tiles to the one for a similarly size input box
+shifted away from the zoom=1 tile intersection.
+
+.. code-block:: console
+
+    $ echo "[-92, 1, -91, 2]" | mercantile tiles --bounding-tile
+    [31, 63, 7]
 
 The commands can be piped together to do this:
 
 .. code-block:: console
 
-    $ echo "[-104.99, 39.99, -105, 40]" \
+    $ echo "[-105, 39.99, -104.99, 40]" \
     > | mercantile tiles 14 \
     > | mercantile shapes --indent 2 --precision 6
     {
@@ -196,7 +222,7 @@ installed, you can shoot this GeoJSON straight to `geojson.io
 
 .. code-block:: console
 
-    $ echo "[-104.99, 39.99, -105, 40]" \
+    $ echo "[-105, 39.99, -104.99, 40]" \
     > | mercantile tiles 14 \
     > | mercantile shapes --compact \
     > | geojsonio
