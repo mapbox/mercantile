@@ -6,8 +6,8 @@ from collections import namedtuple
 import math
 
 
-__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children']
-__version__ = '0.5.1'
+__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
+__version__ = '0.6'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -74,3 +74,32 @@ def children(*tile):
         Tile(xtile*2+1, ytile*2, zoom+1),
         Tile(xtile*2+1, ytile*2+1, zoom+1),
         Tile(xtile*2, ytile*2+1, zoom+1)]
+
+
+def bounding_tile(*bbox):
+    """Returns the smallest tile containing the bbox.
+    
+    NB: when the bbox spans lines of lng 0 or lat 0, the bounding tile
+    will be (0, 0, 0)."""
+    if len(bbox) == 2:
+        bbox += bbox
+    # Algorithm ported directly from https://github.com/mapbox/tilebelt.
+    tmin = tile(bbox[0], bbox[1], 32)
+    tmax = tile(bbox[2], bbox[3], 32)
+    bbox = tmin[:2] + tmax[:2]
+    z = _getBboxZoom(*bbox)
+    if z == 0:
+        return Tile(0, 0, 0)
+    x = bbox[0] >> (32 - z)
+    y = bbox[1] >> (32 - z)
+    return Tile(x, y, z)
+
+
+def _getBboxZoom(*bbox):
+    MAX_ZOOM = 28
+    for z in range(0, MAX_ZOOM):
+        mask = 1 << (32 - (z + 1))
+        if ((bbox[0] & mask) != (bbox[2] & mask) 
+            or (bbox[1] & mask) != (bbox[3] & mask)):
+            return z
+    return MAX_ZOOM

@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.6 (2014-09-27)
+----------------
+- Add bounding_tile function and tests (#25).
+
 0.5.1 (2014-09-25)
 ------------------
 - Let mercantile tiles accept point input as well as bbox or GeojSON.

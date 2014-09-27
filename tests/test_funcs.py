@@ -50,3 +50,9 @@ def test_children():
     children = mercantile.children(243, 166, 9)
     assert len(children) == 4
     assert (486, 332, 10) in children
+
+
+def test_bounding_tile():
+    assert mercantile.bounding_tile(-92.5, 0.5, -90.5, 1.5) == (31, 63, 7)
+    assert mercantile.bounding_tile(-90.5, 0.5, -89.5, 0.5) == (0, 0, 1)
+    assert mercantile.bounding_tile(-92, 0, -88, 2) == (0, 0, 0)
