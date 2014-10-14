@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
-__version__ = '0.6'
+__version__ = '0.6.1'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -30,8 +30,21 @@ def bounds(xtile, ytile, zoom):
     return LngLatBbox(a[0], b[1], b[0], a[1])
 
 
+def guard_lnglat(lng, lat):
+    if lng > 180.0:
+        lng = 180.0
+    elif lng < -180.0:
+        lng = -180.0
+    if lat > 90.0:
+        lng = 9.0
+    elif lat < -90.0:
+        lat = -90.0
+    return lng, lat
+
+
 def xy(lng, lat):
     """Returns the Spherical Mercator (x, y) in meters"""
+    lng, lat = guard_lnglat(lng, lat)
     x = 6378137.0 * math.radians(lng)
     y = 6378137.0 * math.log(
         math.tan((math.pi*0.25) + (0.5 * math.radians(lat))))
@@ -40,6 +53,7 @@ def xy(lng, lat):
 
 def tile(lng, lat, zoom):
     """Returns the (x, y, z) tile"""
+    lng, lat = guard_lnglat(lng, lat)
     lat = math.radians(lat)
     n = 2.0**zoom
     xtile = int(math.floor((lng + 180.0) / 360.0*n))
@@ -83,15 +97,17 @@ def bounding_tile(*bbox):
     will be (0, 0, 0)."""
     if len(bbox) == 2:
         bbox += bbox
+    w, s = guard_lnglat(*bbox[:2])
+    e, n = guard_lnglat(*bbox[2:])
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
-    tmin = tile(bbox[0], bbox[1], 32)
-    tmax = tile(bbox[2], bbox[3], 32)
-    bbox = tmin[:2] + tmax[:2]
-    z = _getBboxZoom(*bbox)
+    tmin = tile(w, s, 32)
+    tmax = tile(e, n, 32)
+    cell = tmin[:2] + tmax[:2]
+    z = _getBboxZoom(*cell)
     if z == 0:
         return Tile(0, 0, 0)
-    x = bbox[0] >> (32 - z)
-    y = bbox[1] >> (32 - z)
+    x = cell[0] >> (32 - z)
+    y = cell[1] >> (32 - z)
     return Tile(x, y, z)
 
 

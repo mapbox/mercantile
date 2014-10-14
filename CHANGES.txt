@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.6.1 (2014-10-13)
+------------------
+- Guard against lng/lat values off the globe (#27).
+
 0.6 (2014-09-27)
 ----------------
 - Add bounding_tile function and tests (#25).
