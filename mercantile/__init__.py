@@ -56,9 +56,13 @@ def tile(lng, lat, zoom):
     lng, lat = guard_lnglat(lng, lat)
     lat = math.radians(lat)
     n = 2.0**zoom
-    xtile = int(math.floor((lng + 180.0) / 360.0*n))
-    ytile = int(math.floor((1.0 - math.log(
-        math.tan(lat) + (1.0/math.cos(lat))) / math.pi) / 2.0*n))
+    try:
+        xtile = int(math.floor((lng + 180.0) / 360.0*n))
+        ytile = int(math.floor((1.0 - math.log(
+            math.tan(lat) + (1.0/math.cos(lat))) / math.pi) / 2.0*n))
+    except ValueError:
+        xtile = 0
+        ytile = 0
     return Tile(xtile, ytile, zoom)
 
 

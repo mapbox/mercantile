@@ -56,3 +56,11 @@ def test_bounding_tile():
     assert mercantile.bounding_tile(-92.5, 0.5, -90.5, 1.5) == (31, 63, 7)
     assert mercantile.bounding_tile(-90.5, 0.5, -89.5, 0.5) == (0, 0, 1)
     assert mercantile.bounding_tile(-92, 0, -88, 2) == (0, 0, 0)
+
+
+def test_overflow_bounding_tile():
+    assert mercantile.bounding_tile(
+        -179.99999999999997,
+        -90.00000000000003,
+        180.00000000000014,
+        -63.27066048950458) == (0, 0, 0)
