@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
-__version__ = '0.7'
+__version__ = '0.7.1'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -30,7 +30,7 @@ def bounds(xtile, ytile, zoom):
     return LngLatBbox(a[0], b[1], b[0], a[1])
 
 
-def guard_lnglat(lng, lat):
+def truncate_lnglat(lng, lat):
     if lng > 180.0:
         lng = 180.0
     elif lng < -180.0:
@@ -42,18 +42,19 @@ def guard_lnglat(lng, lat):
     return lng, lat
 
 
-def xy(lng, lat):
+def xy(lng, lat, truncate=False):
     """Returns the Spherical Mercator (x, y) in meters"""
-    lng, lat = guard_lnglat(lng, lat)
+    if truncate:
+        lng, lat = truncate_lnglat(lng, lat)
     x = 6378137.0 * math.radians(lng)
     y = 6378137.0 * math.log(
         math.tan((math.pi*0.25) + (0.5 * math.radians(lat))))
     return x, y
 
 
-def tile(lng, lat, zoom):
+def tile(lng, lat, zoom, truncate=False):
     """Returns the (x, y, z) tile"""
-    lng, lat = guard_lnglat(lng, lat)
+    lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
     n = 2.0**zoom
     try:
@@ -94,15 +95,17 @@ def children(*tile):
         Tile(xtile*2, ytile*2+1, zoom+1)]
 
 
-def bounding_tile(*bbox):
+def bounding_tile(*bbox, **kwds):
     """Returns the smallest tile containing the bbox.
 
     NB: when the bbox spans lines of lng 0 or lat 0, the bounding tile
     will be (0, 0, 0)."""
     if len(bbox) == 2:
         bbox += bbox
-    w, s = guard_lnglat(*bbox[:2])
-    e, n = guard_lnglat(*bbox[2:])
+    w, s, e, n = bbox
+    if kwds.get('truncate'):
+        w, s = truncate_lnglat(w, s)
+        e, n = truncate_lnglat(e, n)
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
     tmin = tile(w, s, 32)
     tmax = tile(e, n, 32)

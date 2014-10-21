@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.7.1 (2014-10-21)
+------------------
+- Make lng/lat truncation optional and off by default (#29).
+
 0.7 (2014-10-21)
 ----------------
 - Add customization of output shape properties (#30).
