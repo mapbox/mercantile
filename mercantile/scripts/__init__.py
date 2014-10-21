@@ -99,10 +99,18 @@ def shapes(
         ctx, input, precision, indent, compact, projected,
         json_mode, x_json_seq_rs, output_mode, extents, buffer):
 
-    """Reads one or more [x, y, z] Web Mercator tile descriptions
+    """Reads one or more Web Mercator tile descriptions
     from stdin and writes either a GeoJSON feature collection (the
     default) or a JSON sequence of GeoJSON features/collections to
     stdout.
+
+    tile descriptions may be either an [x, y, z] array or a JSON
+    object of the form
+
+      {"tile": [x, y, z], "properties": {"name": "foo", ...}}
+
+    In the latter case, the properties object will be used to update
+    the properties object of the output feature.
     """
     verbosity = ctx.obj['verbosity']
     logger = logging.getLogger('mercantile')
@@ -122,7 +130,15 @@ def shapes(
         col_ys = []
         for line in src:
             line = line.strip()
-            x, y, z = json.loads(line)[:3]
+            obj = json.loads(line)
+            if isinstance(obj, dict):
+                x, y, z = obj['tile'][:3]
+                props = obj['properties']
+            elif isinstance(obj, list):
+                x, y, z = obj[:3]
+                props = {}
+            else:
+                raise ValueError("Invalid input: %r", obj)
             west, south, east, north = mercantile.bounds(x, y, z)
             if projected == 'mercator':
                 west, south = mercantile.xy(west, south)
@@ -155,6 +171,8 @@ def shapes(
                 'id': xyz,
                 'geometry': geom,
                 'properties': {'title': 'XYZ tile %s' % xyz}}
+            if props:
+                feature['properties'].update(props)
             if extents:
                 stdout.write(" ".join(map(str, bbox)))
                 stdout.write("\n")
