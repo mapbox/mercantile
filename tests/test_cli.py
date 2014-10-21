@@ -37,6 +37,13 @@ def test_cli_shapes_extents():
     assert result.decode('utf-8').strip() == '-11740727.545 4852834.052 -11662456.028 4931105.569'
 
 
+def test_cli_shapes_props():
+    result = subprocess.check_output(
+            """mercantile shapes '{"tile": [106, 193, 9], "properties": {"title": "foo"}}'""",
+        shell=True)
+    assert '{"title": "foo"}' in result.decode('utf-8')
+
+
 def test_cli_tiles_no_bounds():
     result = subprocess.check_output(
         'echo "[-105, 39.99, -104.99, 40]" | mercantile tiles 14',
