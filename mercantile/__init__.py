@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
-__version__ = '0.6.1'
+__version__ = '0.7'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])

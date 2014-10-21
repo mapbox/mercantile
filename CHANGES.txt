@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.7 (2014-10-21)
+----------------
+- Add customization of output shape properties (#30).
+
 0.6.1 (2014-10-13)
 ------------------
 - Guard against lng/lat values off the globe (#27).
