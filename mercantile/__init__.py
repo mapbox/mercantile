@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
-__version__ = '0.8'
+__version__ = '0.8.1'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -96,6 +96,10 @@ def children(*tile):
         Tile(xtile*2, ytile*2+1, zoom+1)]
 
 
+def rshift(val, n):
+    return (val % 0x100000000) >> n
+
+
 def bounding_tile(*bbox, **kwds):
     """Returns the smallest tile containing the bbox.
 
@@ -115,8 +119,8 @@ def bounding_tile(*bbox, **kwds):
     z = _getBboxZoom(*cell)
     if z == 0:
         return Tile(0, 0, 0)
-    x = cell[0] >> (32 - z)
-    y = cell[1] >> (32 - z)
+    x = rshift(cell[0], (32 - z))
+    y = rshift(cell[1], (32 - z))
     return Tile(x, y, z)
 
 
