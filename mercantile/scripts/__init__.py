@@ -65,25 +65,17 @@ def cli(ctx, verbose, quiet):
               help="Output in geographic coordinates (the default).")
 @click.option('--mercator', 'projected', flag_value='mercator',
               help="Output in Web Mercator coordinates.")
-# JSON object (default) or sequence switch.
-@click.option('--json-obj', 'json_mode', flag_value='obj', default=True,
-              help="Write a single JSON object (the default).")
-@click.option('--x-json-seq', 'json_mode', flag_value='seq',
-              help="Write a JSON sequence. Experimental.")
-# Use ASCII RS control code to signal a sequence item (False is default).
-# See http://tools.ietf.org/html/draft-ietf-json-text-sequence-05.
-# Experimental.
-@click.option('--x-json-seq-rs/--x-json-seq-no-rs', default=True,
-              help="Use RS as text separator. Experimental.")
+@click.option('--seq', is_flag=True, default=False,
+              help="Write a RS-delimited JSON sequence (default is LF).")
 # GeoJSON feature (default) or collection switch. Meaningful only
 # when --x-json-seq is used.
 @click.option('--feature', 'output_mode', flag_value='feature',
               default=True,
               help="Output as sequence of GeoJSON features (the default).")
-@click.option('--collection', 'output_mode', flag_value='collection',
-              help="Output as sequence of GeoJSON feature collections.")
 @click.option('--bbox', 'output_mode', flag_value='bbox',
               help="Output as sequence of GeoJSON bbox arrays.")
+@click.option('--collect', is_flag=True, default=False,
+              help="Output as a GeoJSON feature collections.")
 # Optionally write out bboxen in a form that goes
 # straight into GDAL utilities like gdalwarp.
 @click.option('--extents/--no-extents', default=False,
@@ -97,7 +89,7 @@ def cli(ctx, verbose, quiet):
 @click.pass_context
 def shapes(
         ctx, input, precision, indent, compact, projected,
-        json_mode, x_json_seq_rs, output_mode, extents, buffer):
+        seq, output_mode, collect, extents, buffer):
 
     """Reads one or more Web Mercator tile descriptions
     from stdin and writes either a GeoJSON feature collection (the
@@ -119,30 +111,33 @@ def shapes(
         dump_kwds['indent'] = indent
     if compact:
         dump_kwds['separators'] = (',', ':')
+
     try:
         src = click.open_file(input).__iter__()
     except IOError:
         src = [input]
-    stdout = click.get_text_stream('stdout')
+
     try:
         features = []
         col_xs = []
         col_ys = []
-        for line in src:
+        for i, line in enumerate(src):
             line = line.strip()
             obj = json.loads(line)
             if isinstance(obj, dict):
                 x, y, z = obj['tile'][:3]
-                props = obj['properties']
+                props = obj.get('properties')
+                fid = obj.get('id')
             elif isinstance(obj, list):
                 x, y, z = obj[:3]
                 props = {}
+                fid = None
             else:
                 raise ValueError("Invalid input: %r", obj)
             west, south, east, north = mercantile.bounds(x, y, z)
             if projected == 'mercator':
-                west, south = mercantile.xy(west, south)
-                east, north = mercantile.xy(east, north)
+                west, south = mercantile.xy(west, south, truncate=False)
+                east, north = mercantile.xy(east, north, truncate=False)
             if buffer:
                 west -= buffer
                 south -= buffer
@@ -173,30 +168,27 @@ def shapes(
                 'properties': {'title': 'XYZ tile %s' % xyz}}
             if props:
                 feature['properties'].update(props)
-            if extents:
-                stdout.write(" ".join(map(str, bbox)))
-                stdout.write("\n")
-            elif json_mode == 'seq':
-                if x_json_seq_rs:
-                    stdout.write(u'\u001e')
-                if output_mode == 'bbox':
-                    stdout.write(json.dumps(bbox, **dump_kwds))
-                elif output_mode == 'feature':
-                    stdout.write(json.dumps(feature, **dump_kwds))
-                else:
-                    stdout.write(json.dumps({
-                        'type': 'FeatureCollection',
-                        'features': [feature]}, **dump_kwds))
-                stdout.write('\n')
-            else:
+            if fid:
+                feature['id'] = fid
+            if collect:
                 features.append(feature)
-        if json_mode == 'obj' and not extents:
+            elif extents:
+                click.echo(" ".join(map(str, bbox)))
+            else:
+                if seq:
+                    click.echo(u'\x1e')
+                if output_mode == 'bbox':
+                    click.echo(json.dumps(bbox, **dump_kwds))
+                elif output_mode == 'feature':
+                    click.echo(json.dumps(feature, **dump_kwds))
+
+        if collect and features:
             bbox = [min(col_xs), min(col_ys), max(col_xs), max(col_ys)]
-            stdout.write(json.dumps({
+            click.echo(json.dumps({
                 'type': 'FeatureCollection',
                 'bbox': bbox, 'features': features},
                 **dump_kwds))
-            stdout.write('\n')
+
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")
@@ -211,17 +203,20 @@ def shapes(
 # This input is either a filename, stdin, or a string.
 # Has to follow the zoom arg.
 @click.argument('input', default='-', required=False)
-@click.option('--bounding-tile/--zoom-tiles', default=False)
+@click.option('--bounding-tile', is_flag=True, default=False,
+              help="Output the one tile that entirely bounds the input.")
 # Optionally append [west, south, east, north] bounds of the tile to
-# the output array.
+# the output array. TODO: deprecate this option.
 @click.option('--with-bounds/--without-bounds', default=False,
               help="Append [w, s, e, n] tile bounds to output "
-                   "(default is False).")
-@click.option('--x-json-seq/--x-json-obj', default=False,
-              help="Read a LF-delimited JSON sequence (default is object). "
-                   "Experimental.")
+                   "(default is False). To be deprecated in a future "
+                   "version.")
+@click.option('--seq/--lf', default=False,
+              help="Write a RS-delimited JSON sequence (default is LF).")
+@click.option('--x-json-seq', is_flag=True, default=False,
+              help="Deprecated option. Sequences are now the default.")
 @click.pass_context
-def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
+def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
     """Lists Web Mercator tiles at ZOOM level intersecting
     GeoJSON [west, south, east, north] bounding boxen, features, or
     collections read from stdin. Output is a JSON
@@ -245,7 +240,6 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
         src = click.open_file(input).readlines()
     except IOError:
         src = [input]
-    stdout = click.get_text_stream('stdout')
 
     src = iter(src)
     first_line = next(src)
@@ -263,17 +257,11 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
                     buffer += line
             else:
                 yield json.loads(buffer)
-    elif x_json_seq:
+    else:
         def feature_gen():
             yield json.loads(first_line)
             for line in src:
                 yield json.loads(line)
-    else:
-        def feature_gen():
-            logger.debug("Text a: %s", first_line)
-            remainder = " ".join(list(src))
-            logger.debug("Text b: %s", remainder)
-            yield json.loads(first_line + remainder)
 
     try:
         source = feature_gen()
@@ -298,10 +286,12 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
                     bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
             west, south, east, north = bbox
             if bounding_tile:
-                vals = mercantile.bounding_tile(west, south, east, north)
+                vals = mercantile.bounding_tile(
+                        west, south, east, north, truncate=False)
                 output = json.dumps(vals)
-                stdout.write(output)
-                stdout.write('\n')
+                if seq:
+                    click.echo(u'\x1e')
+                click.echo(output)
             else:
                 # shrink the bounds a small amount so that
                 # shapes/tiles round trip.
@@ -309,8 +299,10 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
                 south += 1.0e-10
                 east -= 1.0e-10
                 north -= 1.0e-10
-                minx, miny, _ = mercantile.tile(west, north, zoom)
-                maxx, maxy, _ = mercantile.tile(east, south, zoom)
+                minx, miny, _ = mercantile.tile(
+                                    west, north, zoom, truncate=False)
+                maxx, maxy, _ = mercantile.tile(
+                                    east, south, zoom, truncate=False)
                 logger.debug("Tile ranges [%d:%d, %d:%d]",
                              minx, maxx, miny, maxy)
                 for x in range(minx, maxx+1):
@@ -319,8 +311,9 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, x_json_seq):
                         if with_bounds:
                             vals += mercantile.bounds(x, y, zoom)
                         output = json.dumps(vals)
-                        stdout.write(output)
-                        stdout.write('\n')
+                        if seq:
+                            click.echo(u'\x1e')
+                        click.echo(output)
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")

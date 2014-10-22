@@ -54,7 +54,8 @@ def xy(lng, lat, truncate=False):
 
 def tile(lng, lat, zoom, truncate=False):
     """Returns the (x, y, z) tile"""
-    lng, lat = truncate_lnglat(lng, lat)
+    if truncate:
+        lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
     n = 2.0**zoom
     try:
@@ -103,12 +104,13 @@ def bounding_tile(*bbox, **kwds):
     if len(bbox) == 2:
         bbox += bbox
     w, s, e, n = bbox
-    if kwds.get('truncate'):
+    truncate = bool(kwds.get('truncate'))
+    if truncate:
         w, s = truncate_lnglat(w, s)
         e, n = truncate_lnglat(e, n)
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
-    tmin = tile(w, s, 32)
-    tmax = tile(e, n, 32)
+    tmin = tile(w, s, 32, truncate=truncate)
+    tmax = tile(e, n, 32, truncate=truncate)
     cell = tmin[:2] + tmax[:2]
     z = _getBboxZoom(*cell)
     if z == 0:
