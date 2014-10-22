@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.8 (2014-10-22)
+----------------
+- Streamlining of sequence related options (#35).
+- Add customization of output shape ids (#33).
+
 0.7.1 (2014-10-21)
 ------------------
 - Make lng/lat truncation optional and off by default (#29).
