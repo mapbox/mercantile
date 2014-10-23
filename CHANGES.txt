@@ -1,6 +1,10 @@
 Changes
 =======
 
+Next
+----
+- Add tiles() function (#38).
+
 0.8.1 (2014-10-22)
 ------------------
 - Emulate JS >>> operator so we get same results as tilebelt (#36).

@@ -295,25 +295,21 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
             else:
                 # shrink the bounds a small amount so that
                 # shapes/tiles round trip.
-                west += 1.0e-10
-                south += 1.0e-10
-                east -= 1.0e-10
-                north -= 1.0e-10
-                minx, miny, _ = mercantile.tile(
-                                    west, north, zoom, truncate=False)
-                maxx, maxy, _ = mercantile.tile(
-                                    east, south, zoom, truncate=False)
-                logger.debug("Tile ranges [%d:%d, %d:%d]",
-                             minx, maxx, miny, maxy)
-                for x in range(minx, maxx+1):
-                    for y in range(miny, maxy+1):
-                        vals = (x, y, zoom)
-                        if with_bounds:
-                            vals += mercantile.bounds(x, y, zoom)
-                        output = json.dumps(vals)
-                        if seq:
-                            click.echo(u'\x1e')
-                        click.echo(output)
+                epsilon = 1.0e-10
+                west += epsilon
+                south += epsilon
+                east -= epsilon
+                north -= epsilon
+                for tile in mercantile.tiles(
+                        west, south, east, north, [zoom], truncate=False):
+                    vals = (tile.x, tile.y, zoom)
+                    if with_bounds:
+                        vals += mercantile.bounds(tile.x, tile.y, zoom)
+                    output = json.dumps(vals)
+                    if seq:
+                        click.echo(u'\x1e')
+                    click.echo(output)
+
         sys.exit(0)
     except Exception:
         logger.exception("Failed. Exception caught")
