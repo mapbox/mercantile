@@ -40,6 +40,14 @@ def test_tile():
     assert tile[1] == expected[1]
 
 
+def test_tiles():
+    bounds = (-105, 39.99, -104.99, 40)
+    tiles = list(mercantile.tiles(*bounds, zooms=[14]))
+    expect = [mercantile.Tile(x=3413, y=6202, z=14),
+              mercantile.Tile(x=3413, y=6203, z=14)]
+    assert sorted(tiles) == sorted(expect)
+
+
 def test_parent():
     parent = mercantile.parent(486, 332, 10)
     assert parent == (243, 166, 9)

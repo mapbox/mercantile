@@ -68,6 +68,18 @@ def tile(lng, lat, zoom, truncate=False):
     return Tile(xtile, ytile, zoom)
 
 
+def tiles(west, south, east, north, zooms, truncate=False):
+    if truncate:
+        west, south = truncate_lnglat(west, south)
+        east, north = truncate_lnglat(east, north)
+    for z in zooms:
+        ll = tile(west, south, z)
+        ur = tile(east, north, z)
+        for i in range(ll.x, ur.x + 1):
+            for j in range(ur.y, ll.y + 1):
+                yield Tile(i, j, z)
+
+
 def parent(*tile):
     """Returns the parent of an (x, y, z) tile."""
     if len(tile) == 1:
