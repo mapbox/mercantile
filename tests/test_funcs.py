@@ -72,3 +72,8 @@ def test_overflow_bounding_tile():
         -90.00000000000003,
         180.00000000000014,
         -63.27066048950458) == (0, 0, 0)
+
+
+def test_pixel_size():
+    assert round(mercantile.pixel_size(z=5, lat=0)) == 4892
+    assert round(mercantile.pixel_size(z=5, lat=45)) == 3459

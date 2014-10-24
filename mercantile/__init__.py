@@ -144,3 +144,19 @@ def _getBboxZoom(*bbox):
                 or (bbox[1] & mask) != (bbox[3] & mask)):
             return z
     return MAX_ZOOM
+
+
+def pixel_size(z, lat, circ=40075160):
+    """
+    Returns the size of a pixel (units same as circumference)
+
+    Parameters: 
+      z: zoom level
+      lat: latitude in degrees
+      circ: circumference (default = 40075160 meters)
+
+    Notes:
+      spheroid calculation may be off slightly from true ellipsoid
+    """
+    return circ * math.cos(math.radians(lat)) / (2 ** (z + 8))
+
