@@ -159,3 +159,4 @@ def pixel_size(z, lat, circ=40075160):
       spheroid calculation may be off slightly from true ellipsoid
     """
     return circ * math.cos(math.radians(lat)) / (2 ** (z + 8))
+
