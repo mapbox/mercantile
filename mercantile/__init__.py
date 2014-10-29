@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
-__version__ = '0.9'
+__version__ = '0.8.2'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -72,12 +72,19 @@ def tiles(west, south, east, north, zooms, truncate=False):
     if truncate:
         west, south = truncate_lnglat(west, south)
         east, north = truncate_lnglat(east, north)
-    for z in zooms:
-        ll = tile(west, south, z)
-        ur = tile(east, north, z)
-        for i in range(ll.x, ur.x + 1):
-            for j in range(ur.y, ll.y + 1):
-                yield Tile(i, j, z)
+    if west > east:
+        bbox_west = (-180.0, south, east, north)
+        bbox_east = (west, south, 180.0, north)
+        bboxes = [bbox_west, bbox_east]
+    else:
+        bboxes = [(west, south, east, north)]
+    for w, s, e, n in bboxes:
+        for z in zooms:
+            ll = tile(w, s, z)
+            ur = tile(e, n, z)
+            for i in range(ll.x, min(ur.x + 1, 2**z)):
+                for j in range(ur.y, min(ll.y + 1, 2**z)):
+                    yield Tile(i, j, z)
 
 
 def parent(*tile):
