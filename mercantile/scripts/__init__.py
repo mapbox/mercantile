@@ -284,31 +284,42 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
                         box_xs.extend([min(lngs), max(lngs)])
                         box_ys.extend([min(lats), max(lats)])
                     bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
+                    
             west, south, east, north = bbox
-            if bounding_tile:
-                vals = mercantile.bounding_tile(
-                        west, south, east, north, truncate=False)
-                output = json.dumps(vals)
-                if seq:
-                    click.echo(u'\x1e')
-                click.echo(output)
+            if west > east:
+                bbox_west = [-180.0, south, east, north]
+                bbox_east = [west, south, 180.0, north]
+                bboxes = [bbox_west, bbox_east]
             else:
-                # shrink the bounds a small amount so that
-                # shapes/tiles round trip.
-                epsilon = 1.0e-10
-                west += epsilon
-                south += epsilon
-                east -= epsilon
-                north -= epsilon
-                for tile in mercantile.tiles(
-                        west, south, east, north, [zoom], truncate=False):
-                    vals = (tile.x, tile.y, zoom)
-                    if with_bounds:
-                        vals += mercantile.bounds(tile.x, tile.y, zoom)
+                bboxes = [bbox]
+            
+            for bbox in bboxes:
+                west, south, east, north = bbox
+                
+                if bounding_tile:
+                    vals = mercantile.bounding_tile(
+                            west, south, east, north, truncate=False)
                     output = json.dumps(vals)
                     if seq:
                         click.echo(u'\x1e')
                     click.echo(output)
+                else:
+                    # shrink the bounds a small amount so that
+                    # shapes/tiles round trip.
+                    epsilon = 1.0e-10
+                    west += epsilon
+                    south += epsilon
+                    east -= epsilon
+                    north -= epsilon
+                    for tile in mercantile.tiles(
+                            west, south, east, north, [zoom], truncate=False):
+                        vals = (tile.x, tile.y, zoom)
+                        if with_bounds:
+                            vals += mercantile.bounds(tile.x, tile.y, zoom)
+                        output = json.dumps(vals)
+                        if seq:
+                            click.echo(u'\x1e')
+                        click.echo(output)
 
         sys.exit(0)
     except Exception:
