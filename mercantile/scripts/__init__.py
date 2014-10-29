@@ -284,26 +284,27 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
                         box_xs.extend([min(lngs), max(lngs)])
                         box_ys.extend([min(lats), max(lats)])
                     bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
-                    
-            west, south, east, north = bbox
-            if west > east:
-                bbox_west = [-180.0, south, east, north]
-                bbox_east = [west, south, 180.0, north]
-                bboxes = [bbox_west, bbox_east]
-            else:
-                bboxes = [bbox]
             
-            for bbox in bboxes:
-                west, south, east, north = bbox
-                
-                if bounding_tile:
-                    vals = mercantile.bounding_tile(
-                            west, south, east, north, truncate=False)
-                    output = json.dumps(vals)
-                    if seq:
-                        click.echo(u'\x1e')
-                    click.echo(output)
+            west, south, east, north = bbox
+            
+            if bounding_tile:
+                vals = mercantile.bounding_tile(
+                        west, south, east, north, truncate=False)
+                output = json.dumps(vals)
+                if seq:
+                    click.echo(u'\x1e')
+                click.echo(output)
+            else:
+                if west > east:
+                    bbox_west = [-180.0, south, east, north]
+                    bbox_east = [west, south, 180.0, north]
+                    bboxes = [bbox_west, bbox_east]
                 else:
+                    bboxes = [bbox]
+                
+                for bbox in bboxes:
+                    west, south, east, north = bbox
+                    
                     # shrink the bounds a small amount so that
                     # shapes/tiles round trip.
                     epsilon = 1.0e-10
