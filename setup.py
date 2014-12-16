@@ -30,7 +30,7 @@ setup(name='mercantile',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=['click'],
+      install_requires=['click>=3.0'],
       entry_points='''
       [console_scripts]
       mercantile=mercantile.scripts:cli
