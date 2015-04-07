@@ -68,7 +68,7 @@ def tile(lng, lat, zoom, truncate=False):
     return Tile(xtile, ytile, zoom)
 
 
-def tiles(west, south, east, north, zooms, truncate=False, google_tiles=True):
+def tiles(west, south, east, north, zooms, truncate=False, google_tiles=False):
     if truncate:
         west, south = truncate_lnglat(west, south)
         east, north = truncate_lnglat(east, north)
@@ -84,11 +84,11 @@ def tiles(west, south, east, north, zooms, truncate=False, google_tiles=True):
             ur = tile(e, n, z)
             for i in range(ll.x, min(ur.x + 1, 2**z)):
                 for j in range(ur.y, min(ll.y + 1, 2**z)):
-					if google_tiles:
-						# coordinate origin is moved from bottom-left to top-left corner of the extent, see gdal2tiles method "GoogleTile"
-						yield Tile(i, (2**z - 1) - j, z)
-					else:
-						yield Tile(i, j, z)
+                    if google_tiles:
+                        # coordinate origin is moved from bottom-left to top-left corner of the extent, see gdal2tiles method "GoogleTile"
+                        yield Tile(i, (2**z - 1) - j, z)
+                    else:
+                        yield Tile(i, j, z)
 
 def parent(*tile):
     """Returns the parent of an (x, y, z) tile."""
