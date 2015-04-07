@@ -203,6 +203,8 @@ def shapes(
 # This input is either a filename, stdin, or a string.
 # Has to follow the zoom arg.
 @click.argument('input', default='-', required=False)
+@click.option('--google-tiles', is_flag=True, default=False,
+              help="Output tiles using google tile coordinates. Coordinate origin is moved from bottom-left to top-left corner of the extent")
 @click.option('--bounding-tile', is_flag=True, default=False,
               help="Output the one tile that entirely bounds the input.")
 # Optionally append [west, south, east, north] bounds of the tile to
@@ -216,7 +218,7 @@ def shapes(
 @click.option('--x-json-seq', is_flag=True, default=False,
               help="Deprecated option. Sequences are now the default.")
 @click.pass_context
-def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
+def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq, google_tiles):
     """Lists Web Mercator tiles at ZOOM level intersecting
     GeoJSON [west, south, east, north] bounding boxen, features, or
     collections read from stdin. Output is a JSON
@@ -301,7 +303,7 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
                 east -= epsilon
                 north -= epsilon
                 for tile in mercantile.tiles(
-                        west, south, east, north, [zoom], truncate=False):
+                        west, south, east, north, [zoom], truncate=False, google_tiles=google_tiles):
                     vals = (tile.x, tile.y, zoom)
                     if with_bounds:
                         vals += mercantile.bounds(tile.x, tile.y, zoom)
