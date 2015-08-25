@@ -161,6 +161,26 @@ def resolution(zoom):
     return initial_resolution / (2 ** zoom)
 
 
+def bounds_for_viewport(lng, lat, width, height, resolution):
+    """Return (lng, lat) bounding box for specified viewport."""
+
+    half_w_deg = (width * resolution) / 2.0
+    half_h_deg = (height * resolution) / 2.0
+
+    x, y = xy(lng, lat)
+
+    return (
+        lnglat(
+            x - half_w_deg,
+            y + half_h_deg,
+        ),
+        lnglat(
+            x + half_w_deg,
+            y - half_h_deg,
+        )
+    )
+
+
 def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
