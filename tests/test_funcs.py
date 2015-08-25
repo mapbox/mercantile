@@ -33,6 +33,14 @@ def test_xy():
         assert round(a-b, 7) == 0
 
 
+def test_lnglat():
+    xy = (-1017529.7205322663, 7044436.526761846)
+    lnglat = mercantile.lnglat(*xy)
+    expected = (-9.140625, 53.33087298301705)
+    for a, b in zip(expected, lnglat):
+        assert round(a-b, 7) == 0
+
+
 def test_tile():
     tile = mercantile.tile(20.6852, 40.1222, 9)
     expected = (285, 193)
