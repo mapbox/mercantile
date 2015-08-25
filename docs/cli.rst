@@ -127,6 +127,15 @@ shifted away from the zoom=1 tile intersection.
 
     $ echo "[-92, 1, -91, 2]" | mercantile tiles --bounding-tile
     [31, 63, 7]
+    
+Output google tile coordinates, so the tile/y values match gdal2tiles 
+default "mercator" mode.
+
+.. code-block:: console
+
+    $ echo "[-105, 39.99, -104.99, 40]" | mercantile tiles 14 --google-tiles
+    [3413, 10181, 14]
+	[3413, 10180, 14]
 
 The commands can be piped together to do this:
 
