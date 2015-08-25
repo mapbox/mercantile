@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.8.3 (2015-08-24)
+------------------
+- Fix error in lng/lat truncation. If lat was > 90, the *lng* was set to a
+  wrong value.
+
 0.8.2 (2014-10-29)
 ------------------
 - Add tiles() function (#38).

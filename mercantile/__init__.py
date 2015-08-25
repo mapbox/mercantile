@@ -7,7 +7,7 @@ import math
 
 
 __all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
-__version__ = '0.8.2'
+__version__ = '0.8.3'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -36,7 +36,7 @@ def truncate_lnglat(lng, lat):
     elif lng < -180.0:
         lng = -180.0
     if lat > 90.0:
-        lng = 9.0
+        lat = 90.0
     elif lat < -90.0:
         lat = -90.0
     return lng, lat

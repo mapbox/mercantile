@@ -72,3 +72,19 @@ def test_overflow_bounding_tile():
         -90.00000000000003,
         180.00000000000014,
         -63.27066048950458) == (0, 0, 0)
+
+
+def test_truncate_lng_under():
+    assert mercantile.truncate_lnglat(-181, 0) == (-180, 0)
+
+
+def test_truncate_lng_over():
+    assert mercantile.truncate_lnglat(181, 0) == (180, 0)
+
+
+def test_truncate_lat_under():
+    assert mercantile.truncate_lnglat(0, -91) == (0, -90)
+
+
+def test_truncate_lat_over():
+    assert mercantile.truncate_lnglat(0, 91) == (0, 90)
