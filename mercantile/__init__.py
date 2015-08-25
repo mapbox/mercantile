@@ -156,6 +156,11 @@ def bounding_tile(*bbox, **kwds):
     return Tile(x, y, z)
 
 
+def resolution(zoom):
+    initial_resolution = 20037508.342789244 * 2 / 256
+    return initial_resolution / (2 ** zoom)
+
+
 def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):

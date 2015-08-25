@@ -33,6 +33,12 @@ def test_xy():
         assert round(a-b, 7) == 0
 
 
+def test_resolution():
+    resolution = mercantile.resolution(0)
+    initial_resolution = 20037508.342789244 * 2 / 256
+    assert resolution == initial_resolution
+
+
 def test_lnglat():
     xy = (-1017529.7205322663, 7044436.526761846)
     lnglat = mercantile.lnglat(*xy)
