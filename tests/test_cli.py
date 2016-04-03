@@ -145,3 +145,19 @@ def test_cli_strict_overlap_contain():
         cli, ['tiles', '12'], result1.output)
     assert result2.exit_code == 0
     assert result2.output == '[2331, 1185, 12]\n'
+
+
+def test_cli_tiles_points():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['tiles', '14'], '[14.0859, 5.798]')
+    assert result.exit_code == 0
+    assert result.output == '[8833, 7927, 14]\n'
+
+def test_cli_tiles_point_geojson():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['tiles', '14'],
+        '{"type":"geometry","coordinates":[14.0859, 5.798]}')
+    assert result.exit_code == 0
+    assert result.output == '[8833, 7927, 14]\n'
