@@ -302,7 +302,6 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
                     east += epsilon
                     north += epsilon
                 else:
-                    pass
                     # 2D bbox
                     # shrink the bounds a small amount so that
                     # shapes/tiles round trip.
