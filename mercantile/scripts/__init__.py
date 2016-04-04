@@ -295,13 +295,7 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
             else:
                 epsilon = 1.0e-10
 
-                if east == west and north == south:
-                    # point, buffer to make a small 2D bbox
-                    west -= epsilon
-                    south -= epsilon
-                    east += epsilon
-                    north += epsilon
-                else:
+                if east != west and north != south:
                     # 2D bbox
                     # shrink the bounds a small amount so that
                     # shapes/tiles round trip.
