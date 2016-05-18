@@ -48,6 +48,18 @@ def test_tiles():
     assert sorted(tiles) == sorted(expect)
 
 
+def test_qk():
+    tile = mercantile.Tile(486, 332, 10)
+    expected = "0313102310"
+    assert mercantile.qk(tile) == expected
+
+
+def test_qk_to_tile():
+    quadkey = "0313102310"
+    expected = mercantile.Tile(486, 332, 10)
+    assert mercantile.qk_to_tile(quadkey) == expected
+    
+
 def test_parent():
     parent = mercantile.parent(486, 332, 10)
     assert parent == (243, 166, 9)

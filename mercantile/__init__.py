@@ -6,7 +6,7 @@ from collections import namedtuple
 import math
 
 
-__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile']
+__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile', 'qk', 'qk_to_tile']
 __version__ = '0.8.3'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
@@ -66,6 +66,39 @@ def tile(lng, lat, zoom, truncate=False):
         xtile = 0
         ytile = 0
     return Tile(xtile, ytile, zoom)
+
+
+def qk(*tile):
+    """Returns the quadkey of an (x, y, z) tile."""
+    if len(tile) == 1:
+        tile = tile[0]
+    xtile, ytile, zoom = tile
+
+    quadkey = []
+    for z in range(zoom, 0, -1):
+        digit = 0
+        mask = 1 << (z - 1)
+        if xtile & mask:
+            digit += 1
+        if ytile & mask:
+            digit += 2
+        quadkey.append(str(digit))
+    return ''.join(quadkey)
+
+
+def qk_to_tile(quadkey):
+    """Returns the (x, y, z) tile of the given quadkey."""
+    xtile, ytile = 0, 0
+    for i, digit in enumerate(reversed(quadkey)):
+        mask = 1 << i
+        if digit == '1':
+            xtile = xtile | mask
+        elif digit == '2':
+            ytile = ytile | mask
+        elif digit == '3':
+            xtile = xtile | mask
+            ytile = ytile | mask
+    return Tile(xtile, ytile, i+1)
 
 
 def tiles(west, south, east, north, zooms, truncate=False):
