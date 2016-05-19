@@ -1,18 +1,30 @@
+import pytest
+
 import mercantile
 
 
-def test_ul():
+@pytest.mark.parametrize('args', [
+   (486, 332, 10),
+   [(486, 332, 10)],
+   [mercantile.Tile(486, 332, 10)],
+])
+def test_ul(args):
     expected = (-9.140625, 53.33087298301705)
-    lnglat = mercantile.ul(486, 332, 10)
+    lnglat = mercantile.ul(*args)
     for a, b in zip(expected, lnglat):
         assert round(a-b, 7) == 0
     assert lnglat[0] == lnglat.lng
     assert lnglat[1] == lnglat.lat
 
 
-def test_bbox():
+@pytest.mark.parametrize('args', [
+   (486, 332, 10),
+   [(486, 332, 10)],
+   [mercantile.Tile(486, 332, 10)],
+])
+def test_bbox(args):
     expected = (-9.140625, 53.12040528310657, -8.7890625, 53.33087298301705)
-    bbox = mercantile.bounds(486, 332, 10)
+    bbox = mercantile.bounds(*args)
     for a, b in zip(expected, bbox):
         assert round(a-b, 7) == 0
     assert bbox.west == bbox[0]
