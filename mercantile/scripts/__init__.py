@@ -293,13 +293,17 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
                     click.echo(u'\x1e')
                 click.echo(output)
             else:
-                # shrink the bounds a small amount so that
-                # shapes/tiles round trip.
                 epsilon = 1.0e-10
-                west += epsilon
-                south += epsilon
-                east -= epsilon
-                north -= epsilon
+
+                if east != west and north != south:
+                    # 2D bbox
+                    # shrink the bounds a small amount so that
+                    # shapes/tiles round trip.
+                    west += epsilon
+                    south += epsilon
+                    east -= epsilon
+                    north -= epsilon
+
                 for tile in mercantile.tiles(
                         west, south, east, north, [zoom], truncate=False):
                     vals = (tile.x, tile.y, zoom)
