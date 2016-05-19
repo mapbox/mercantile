@@ -12,8 +12,8 @@ ytile, zoom)`` functions that respectively return the upper left corner and
 bounding longitudes and latitudes for XYZ tiles, a ``xy(lng, lat)`` function
 that returns spherical mercator x and y coordinates, a ``tile(lng, lat,
 zoom)`` function that returns the tile containing a given point, and
-quadkey conversion functions ``qk(xtile, ytile, zoom)`` and
-``qk_to_tile(quadkey)`` for translating between quadkey and tile
+quadkey conversion functions ``quadkey(xtile, ytile, zoom)`` and
+``quadkey_to_tile(quadkey)`` for translating between quadkey and tile
 coordinates.
 
 .. code-block:: pycon
@@ -27,9 +27,9 @@ coordinates.
     (-1017529.7205322663, 7044436.526761846)
     >>> mercantile.tile(*mercantile.ul(486, 332, 10) + (10,))
     Tile(x=486, y=332, z=10)
-    >>> mercantile.qk(486, 332, 10)
+    >>> mercantile.quadkey(486, 332, 10)
     '0313102310'
-    >>> mercantile.qk_to_tile('0313102310')
+    >>> mercantile.quadkey_to_tile('0313102310')
     Tile(x=486, y=332, z=10)
 
 Also in mercantile are functions to traverse the tile stack.
