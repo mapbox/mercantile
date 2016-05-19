@@ -27,9 +27,9 @@ coordinates.
     (-1017529.7205322663, 7044436.526761846)
     >>> mercantile.tile(*mercantile.ul(486, 332, 10) + (10,))
     Tile(x=486, y=332, z=10)
-    >>> mercantile.qk(486, 332, 10))
+    >>> mercantile.qk(486, 332, 10)
     '0313102310'
-    >>> mercantile.qk_to_tile('0313102310)
+    >>> mercantile.qk_to_tile('0313102310')
     Tile(x=486, y=332, z=10)
 
 Also in mercantile are functions to traverse the tile stack.
