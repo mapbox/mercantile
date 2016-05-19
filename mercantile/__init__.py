@@ -14,8 +14,11 @@ LngLat = namedtuple('LngLat', ['lng', 'lat'])
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
 
 
-def ul(xtile, ytile, zoom):
+def ul(*tile):
     """Returns the upper left (lon, lat) of a tile"""
+    if len(tile) == 1:
+        tile = tile[0]
+    xtile, ytile, zoom = tile
     n = 2.0 ** zoom
     lon_deg = xtile / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
@@ -23,8 +26,11 @@ def ul(xtile, ytile, zoom):
     return LngLat(lon_deg, lat_deg)
 
 
-def bounds(xtile, ytile, zoom):
+def bounds(*tile):
     """Returns the (lon, lat) bounding box of a tile"""
+    if len(tile) == 1:
+        tile = tile[0]
+    xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
     b = ul(xtile+1, ytile+1, zoom)
     return LngLatBbox(a[0], b[1], b[0], a[1])
