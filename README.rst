@@ -65,6 +65,7 @@ that intersect with a GeoJSON bounding box.
     Commands:
       children  Write the children of the tile.
       parent    Write the parent tile.
+      quadkey   Convert to/from quadkeys.
       shapes    Write the shapes of tiles as GeoJSON.
       tiles     List tiles that overlap or contain a lng/lat point, bounding box,
                 or GeoJSON objects.

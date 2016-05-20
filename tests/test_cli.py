@@ -161,3 +161,27 @@ def test_cli_tiles_point_geojson():
         '{"type":"geometry","coordinates":[14.0859, 5.798]}')
     assert result.exit_code == 0
     assert result.output == '[8833, 7927, 14]\n'
+
+
+def test_cli_quadkey_from_tiles():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['quadkey'], '[486, 332, 10]\n[6826, 12415, 15]')
+    assert result.exit_code == 0
+    assert result.output == '0313102310\n023101012323232\n'
+
+
+def test_cli_quadkey_from_quadkeys():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['quadkey'], '0313102310\n023101012323232\n')
+    assert result.exit_code == 0
+    assert result.output == '[486, 332, 10]\n[6826, 12415, 15]\n'
+
+
+def test_cli_quadkey_from_mixed():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['quadkey'], '0313102310\n[6826, 12415, 15]\n')
+    assert result.exit_code == 0
+    assert result.output == '[486, 332, 10]\n023101012323232\n'    

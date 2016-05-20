@@ -399,3 +399,50 @@ def parent(ctx, input, depth):
     except Exception:
         logger.exception("Failed. Exception caught")
         sys.exit(1)
+
+
+@cli.command(short_help="Convert to/from quadkeys.")
+@click.argument('input', default='-', required=False)
+@click.pass_context
+def quadkey(ctx, input):
+    """Takes a [x, y, z] tile or a quadkey as input and writes a
+    quadkey or a [x, y, z] tile to stdout, respectively.
+
+    $ echo "[486, 332, 10]" | mercantile quadkey
+
+    Output:
+
+    0313102310
+
+    $ echo "0313102310" | mercantile quadkey
+
+    Output:
+
+    [486, 332, 10]
+    """
+    verbosity = ctx.obj['verbosity']
+    logger = logging.getLogger('mercantile')
+    try:
+        src = click.open_file(input).readlines()
+    except IOError:
+        src = [input]
+    stdout = click.get_text_stream('stdout')
+    
+    try:
+        for line in src:
+            line = line.strip()
+            if not line:
+                continue
+            if line[0] == '[':
+                tile = json.loads(line)[:3]
+                output = mercantile.quadkey(tile)
+            else:
+                tile = mercantile.quadkey_to_tile(line)
+                output = json.dumps(tile)
+            stdout.write(output)
+            stdout.write('\n')
+        sys.exit(0)
+    except Exception:
+        logger.exception("Failed. Exception caught")
+        sys.exit(1)
+        
