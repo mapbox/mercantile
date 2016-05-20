@@ -6,7 +6,7 @@ from collections import namedtuple
 import math
 
 
-__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile', 'qk', 'qk_to_tile']
+__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile', 'quadkey', 'quadkey_to_tile']
 __version__ = '0.8.3'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
