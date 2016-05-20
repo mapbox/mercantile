@@ -5,6 +5,9 @@ Mercantile
 .. image:: https://travis-ci.org/mapbox/mercantile.svg
    :target: https://travis-ci.org/mapbox/mercantile
 
+.. image:: https://coveralls.io/repos/github/mapbox/mercantile/badge.svg?branch=master
+   :target: https://coveralls.io/github/mapbox/mercantile?branch=master
+
 Spherical mercator coordinate and tile utilities
 
 The mercantile module provides ``ul(xtile, ytile, zoom)`` and ``bounds(xtile,

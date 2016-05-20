@@ -11,8 +11,11 @@ import mercantile
 
 
 def configure_logging(verbosity):
-    log_level = max(10, 30 - 10*verbosity)
+    log_level = max(10, 30 - 10 * verbosity)
     logging.basicConfig(stream=sys.stderr, level=log_level)
+
+
+logger = logging.getLogger(__name__)
 
 
 def coords(obj):
@@ -31,6 +34,23 @@ def coords(obj):
         else:
             for f in coords(e):
                 yield f
+
+
+def normalize_input(input):
+    """Normalize file or string input."""
+    try:
+        src = click.open_file(input).readlines()
+    except IOError:
+        src = [input]
+    return src
+
+
+def iter_lines(lines):
+    """Iterate over lines of input, stripping and skipping."""
+    for line in lines:
+        line = line.strip()
+        if line:
+            yield line
 
 
 # The CLI command group.
@@ -104,95 +124,84 @@ def shapes(
     In the latter case, the properties object will be used to update
     the properties object of the output feature.
     """
-    verbosity = ctx.obj['verbosity']
-    logger = logging.getLogger('mercantile')
     dump_kwds = {'sort_keys': True}
     if indent:
         dump_kwds['indent'] = indent
     if compact:
         dump_kwds['separators'] = (',', ':')
 
-    try:
-        src = click.open_file(input).__iter__()
-    except IOError:
-        src = [input]
+    src = normalize_input(input)
 
-    try:
-        features = []
-        col_xs = []
-        col_ys = []
-        for i, line in enumerate(src):
-            line = line.strip()
-            obj = json.loads(line)
-            if isinstance(obj, dict):
-                x, y, z = obj['tile'][:3]
-                props = obj.get('properties')
-                fid = obj.get('id')
-            elif isinstance(obj, list):
-                x, y, z = obj[:3]
-                props = {}
-                fid = None
-            else:
-                raise ValueError("Invalid input: %r", obj)
-            west, south, east, north = mercantile.bounds(x, y, z)
-            if projected == 'mercator':
-                west, south = mercantile.xy(west, south, truncate=False)
-                east, north = mercantile.xy(east, north, truncate=False)
-            if buffer:
-                west -= buffer
-                south -= buffer
-                east += buffer
-                north += buffer
-            if precision and precision >= 0:
-                west, south, east, north = (
-                    round(v, precision) for v in (west, south, east, north))
-            bbox = [
-                min(west, east), min(south, north),
-                max(west, east), max(south, north)]
-            col_xs.extend([west, east])
-            col_ys.extend([south, north])
-            geom = {
-                'type': 'Polygon',
-                'coordinates': [[
-                    [west, south],
-                    [west, north],
-                    [east, north],
-                    [east, south],
-                    [west, south]]]}
-            xyz = str((x, y, z))
-            feature = {
-                'type': 'Feature',
-                'bbox': bbox,
-                'id': xyz,
-                'geometry': geom,
-                'properties': {'title': 'XYZ tile %s' % xyz}}
-            if props:
-                feature['properties'].update(props)
-            if fid:
-                feature['id'] = fid
-            if collect:
-                features.append(feature)
-            elif extents:
-                click.echo(" ".join(map(str, bbox)))
-            else:
-                if seq:
-                    click.echo(u'\x1e')
-                if output_mode == 'bbox':
-                    click.echo(json.dumps(bbox, **dump_kwds))
-                elif output_mode == 'feature':
-                    click.echo(json.dumps(feature, **dump_kwds))
+    features = []
+    col_xs = []
+    col_ys = []
+    for i, line in enumerate(iter_lines(src)):
+        obj = json.loads(line)
+        if isinstance(obj, dict):
+            x, y, z = obj['tile'][:3]
+            props = obj.get('properties')
+            fid = obj.get('id')
+        elif isinstance(obj, list):
+            x, y, z = obj[:3]
+            props = {}
+            fid = None
+        else:
+            raise click.BadParameter(
+                "{0}".format(obj), param=input, param_hint='input')
+        west, south, east, north = mercantile.bounds(x, y, z)
+        if projected == 'mercator':
+            west, south = mercantile.xy(west, south, truncate=False)
+            east, north = mercantile.xy(east, north, truncate=False)
+        if buffer:
+            west -= buffer
+            south -= buffer
+            east += buffer
+            north += buffer
+        if precision and precision >= 0:
+            west, south, east, north = (
+                round(v, precision) for v in (west, south, east, north))
+        bbox = [
+            min(west, east), min(south, north),
+            max(west, east), max(south, north)]
+        col_xs.extend([west, east])
+        col_ys.extend([south, north])
+        geom = {
+            'type': 'Polygon',
+            'coordinates': [[
+                [west, south],
+                [west, north],
+                [east, north],
+                [east, south],
+                [west, south]]]}
+        xyz = str((x, y, z))
+        feature = {
+            'type': 'Feature',
+            'bbox': bbox,
+            'id': xyz,
+            'geometry': geom,
+            'properties': {'title': 'XYZ tile %s' % xyz}}
+        if props:
+            feature['properties'].update(props)
+        if fid:
+            feature['id'] = fid
+        if collect:
+            features.append(feature)
+        elif extents:
+            click.echo(" ".join(map(str, bbox)))
+        else:
+            if seq:
+                click.echo(u'\x1e')
+            if output_mode == 'bbox':
+                click.echo(json.dumps(bbox, **dump_kwds))
+            elif output_mode == 'feature':
+                click.echo(json.dumps(feature, **dump_kwds))
 
-        if collect and features:
-            bbox = [min(col_xs), min(col_ys), max(col_xs), max(col_ys)]
-            click.echo(json.dumps({
-                'type': 'FeatureCollection',
-                'bbox': bbox, 'features': features},
-                **dump_kwds))
-
-        sys.exit(0)
-    except Exception:
-        logger.exception("Failed. Exception caught")
-        sys.exit(1)
+    if collect and features:
+        bbox = [min(col_xs), min(col_ys), max(col_xs), max(col_ys)]
+        click.echo(json.dumps({
+            'type': 'FeatureCollection',
+            'bbox': bbox, 'features': features},
+            **dump_kwds))
 
 
 # The tiles command.
@@ -234,14 +243,7 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
     [853, 1551, 12]
 
     """
-    verbosity = ctx.obj['verbosity']
-    logger = logging.getLogger('mercantile')
-    try:
-        src = click.open_file(input).readlines()
-    except IOError:
-        src = [input]
-
-    src = iter(src)
+    src = iter(normalize_input(input))
     first_line = next(src)
 
     # If input is RS-delimited JSON sequence.
@@ -263,61 +265,56 @@ def tiles(ctx, zoom, input, bounding_tile, with_bounds, seq, x_json_seq):
             for line in src:
                 yield json.loads(line)
 
-    try:
-        source = feature_gen()
-        # Detect the input format
-        for obj in source:
-            if isinstance(obj, list):
-                bbox = obj
-                if len(bbox) == 2:
-                    bbox += bbox
-                if len(bbox) != 4:
-                    raise ValueError("Invalid input.")
-            elif isinstance(obj, dict):
-                if 'bbox' in obj:
-                    bbox = obj['bbox']
-                else:
-                    box_xs = []
-                    box_ys = []
-                    for feat in obj.get('features', [obj]):
-                        lngs, lats = zip(*list(coords(feat)))
-                        box_xs.extend([min(lngs), max(lngs)])
-                        box_ys.extend([min(lats), max(lats)])
-                    bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
-            west, south, east, north = bbox
-            if bounding_tile:
-                vals = mercantile.bounding_tile(
-                    west, south, east, north, truncate=False)
+    source = feature_gen()
+    # Detect the input format
+    for obj in source:
+        if isinstance(obj, list):
+            bbox = obj
+            if len(bbox) == 2:
+                bbox += bbox
+            if len(bbox) != 4:
+                raise click.BadParameter(
+                    "{0}".format(bbox), param=input, param_hint='input')
+        elif isinstance(obj, dict):
+            if 'bbox' in obj:
+                bbox = obj['bbox']
+            else:
+                box_xs = []
+                box_ys = []
+                for feat in obj.get('features', [obj]):
+                    lngs, lats = zip(*list(coords(feat)))
+                    box_xs.extend([min(lngs), max(lngs)])
+                    box_ys.extend([min(lats), max(lats)])
+                bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
+        west, south, east, north = bbox
+        if bounding_tile:
+            vals = mercantile.bounding_tile(
+                west, south, east, north, truncate=False)
+            output = json.dumps(vals)
+            if seq:
+                click.echo(u'\x1e')
+            click.echo(output)
+        else:
+            epsilon = 1.0e-10
+
+            if east != west and north != south:
+                # 2D bbox
+                # shrink the bounds a small amount so that
+                # shapes/tiles round trip.
+                west += epsilon
+                south += epsilon
+                east -= epsilon
+                north -= epsilon
+
+            for tile in mercantile.tiles(
+                    west, south, east, north, [zoom], truncate=False):
+                vals = (tile.x, tile.y, zoom)
+                if with_bounds:
+                    vals += mercantile.bounds(tile.x, tile.y, zoom)
                 output = json.dumps(vals)
                 if seq:
                     click.echo(u'\x1e')
                 click.echo(output)
-            else:
-                epsilon = 1.0e-10
-
-                if east != west and north != south:
-                    # 2D bbox
-                    # shrink the bounds a small amount so that
-                    # shapes/tiles round trip.
-                    west += epsilon
-                    south += epsilon
-                    east -= epsilon
-                    north -= epsilon
-
-                for tile in mercantile.tiles(
-                        west, south, east, north, [zoom], truncate=False):
-                    vals = (tile.x, tile.y, zoom)
-                    if with_bounds:
-                        vals += mercantile.bounds(tile.x, tile.y, zoom)
-                    output = json.dumps(vals)
-                    if seq:
-                        click.echo(u'\x1e')
-                    click.echo(output)
-
-        sys.exit(0)
-    except Exception:
-        logger.exception("Failed. Exception caught")
-        sys.exit(1)
 
 
 # The children command.
@@ -336,28 +333,15 @@ def children(ctx, input, depth):
 
     [243, 166, 9]
     """
-    verbosity = ctx.obj['verbosity']
-    logger = logging.getLogger('mercantile')
-    try:
-        src = click.open_file(input).readlines()
-    except IOError:
-        src = [input]
-    stdout = click.get_text_stream('stdout')
-
-    try:
-        for line in src:
-            line = line.strip()
-            tiles = [json.loads(line)[:3]]
-            for i in range(depth):
-                tiles = sum([mercantile.children(t) for t in tiles], [])
-            for t in tiles:
-                output = json.dumps(t)
-                stdout.write(output)
-                stdout.write('\n')
-        sys.exit(0)
-    except Exception:
-        logger.exception("Failed. Exception caught")
-        sys.exit(1)
+    src = normalize_input(input)
+    for line in iter_lines(src):
+        line = line.strip()
+        tiles = [json.loads(line)[:3]]
+        for i in range(depth):
+            tiles = sum([mercantile.children(t) for t in tiles], [])
+        for t in tiles:
+            output = json.dumps(t)
+            click.echo(output)
 
 
 # The parent command.
@@ -376,29 +360,15 @@ def parent(ctx, input, depth):
 
     [243, 166, 9]
     """
-    verbosity = ctx.obj['verbosity']
-    logger = logging.getLogger('mercantile')
-    try:
-        src = click.open_file(input).readlines()
-    except IOError:
-        src = [input]
-    stdout = click.get_text_stream('stdout')
-
-    try:
-        for line in src:
-            line = line.strip()
-            tile = json.loads(line)[:3]
-            if tile[2] - depth < 0:
-                raise ValueError("Maximum depth exceeded.")
-            for i in range(depth):
-                tile = mercantile.parent(tile)
-            output = json.dumps(tile)
-            stdout.write(output)
-            stdout.write('\n')
-        sys.exit(0)
-    except Exception:
-        logger.exception("Failed. Exception caught")
-        sys.exit(1)
+    src = normalize_input(input)
+    for line in iter_lines(src):
+        tile = json.loads(line)[:3]
+        if tile[2] - depth < 0:
+            raise click.UsageError("Invalid parent level: {0}".format(tile[2] - depth))
+        for i in range(depth):
+            tile = mercantile.parent(tile)
+        output = json.dumps(tile)
+        click.echo(output)
 
 
 @cli.command(short_help="Convert to/from quadkeys.")
@@ -420,29 +390,16 @@ def quadkey(ctx, input):
 
     [486, 332, 10]
     """
-    verbosity = ctx.obj['verbosity']
-    logger = logging.getLogger('mercantile')
+    src = normalize_input(input)
     try:
-        src = click.open_file(input).readlines()
-    except IOError:
-        src = [input]
-    stdout = click.get_text_stream('stdout')
-    
-    try:
-        for line in src:
-            line = line.strip()
-            if not line:
-                continue
+        for line in iter_lines(src):
             if line[0] == '[':
                 tile = json.loads(line)[:3]
                 output = mercantile.quadkey(tile)
             else:
                 tile = mercantile.quadkey_to_tile(line)
                 output = json.dumps(tile)
-            stdout.write(output)
-            stdout.write('\n')
-        sys.exit(0)
-    except Exception:
-        logger.exception("Failed. Exception caught")
-        sys.exit(1)
-        
+            click.echo(output)
+    except ValueError:
+        raise click.BadParameter(
+            "{0}".format(input), param=input, param_hint='input')

@@ -32,7 +32,7 @@ def bounds(*tile):
         tile = tile[0]
     xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
-    b = ul(xtile+1, ytile+1, zoom)
+    b = ul(xtile + 1, ytile + 1, zoom)
     return LngLatBbox(a[0], b[1], b[0], a[1])
 
 
@@ -54,7 +54,7 @@ def xy(lng, lat, truncate=False):
         lng, lat = truncate_lnglat(lng, lat)
     x = 6378137.0 * math.radians(lng)
     y = 6378137.0 * math.log(
-        math.tan((math.pi*0.25) + (0.5 * math.radians(lat))))
+        math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
     return x, y
 
 
@@ -63,11 +63,11 @@ def tile(lng, lat, zoom, truncate=False):
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
-    n = 2.0**zoom
+    n = 2.0 ** zoom
     try:
-        xtile = int(math.floor((lng + 180.0) / 360.0*n))
+        xtile = int(math.floor((lng + 180.0) / 360.0 * n))
         ytile = int(math.floor((1.0 - math.log(
-            math.tan(lat) + (1.0/math.cos(lat))) / math.pi) / 2.0*n))
+            math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
     except ValueError:
         xtile = 0
         ytile = 0
@@ -104,7 +104,9 @@ def quadkey_to_tile(qk):
         elif digit == '3':
             xtile = xtile | mask
             ytile = ytile | mask
-    return Tile(xtile, ytile, i+1)
+        elif digit != '0':
+            raise ValueError("Unexpected quadkey digit: %r", digit)
+    return Tile(xtile, ytile, i + 1)
 
 
 def tiles(west, south, east, north, zooms, truncate=False):
@@ -121,8 +123,8 @@ def tiles(west, south, east, north, zooms, truncate=False):
         for z in zooms:
             ll = tile(w, s, z)
             ur = tile(e, n, z)
-            for i in range(ll.x, min(ur.x + 1, 2**z)):
-                for j in range(ur.y, min(ll.y + 1, 2**z)):
+            for i in range(ll.x, min(ur.x + 1, 2 ** z)):
+                for j in range(ur.y, min(ll.y + 1, 2 ** z)):
                     yield Tile(i, j, z)
 
 
@@ -133,13 +135,13 @@ def parent(*tile):
     xtile, ytile, zoom = tile
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
     if xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile(xtile//2, ytile//2, zoom-1)
+        return Tile(xtile // 2, ytile // 2, zoom - 1)
     elif xtile % 2 == 0:
-        return Tile(xtile//2, (ytile-1)//2, zoom-1)
+        return Tile(xtile // 2, (ytile - 1) // 2, zoom - 1)
     elif not xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile((xtile-1)//2, ytile//2, zoom-1)
+        return Tile((xtile - 1) // 2, ytile // 2, zoom - 1)
     else:
-        return Tile((xtile-1)//2, (ytile-1)//2, zoom-1)
+        return Tile((xtile - 1) // 2, (ytile - 1) // 2, zoom - 1)
 
 
 def children(*tile):
@@ -148,10 +150,10 @@ def children(*tile):
         tile = tile[0]
     xtile, ytile, zoom = tile
     return [
-        Tile(xtile*2, ytile*2, zoom+1),
-        Tile(xtile*2+1, ytile*2, zoom+1),
-        Tile(xtile*2+1, ytile*2+1, zoom+1),
-        Tile(xtile*2, ytile*2+1, zoom+1)]
+        Tile(xtile * 2, ytile * 2, zoom + 1),
+        Tile(xtile * 2 + 1, ytile * 2, zoom + 1),
+        Tile(xtile * 2 + 1, ytile * 2 + 1, zoom + 1),
+        Tile(xtile * 2, ytile * 2 + 1, zoom + 1)]
 
 
 def rshift(val, n):

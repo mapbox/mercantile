@@ -4,29 +4,27 @@ import mercantile
 
 
 @pytest.mark.parametrize('args', [
-   (486, 332, 10),
-   [(486, 332, 10)],
-   [mercantile.Tile(486, 332, 10)],
-])
+    (486, 332, 10),
+    [(486, 332, 10)],
+    [mercantile.Tile(486, 332, 10)]])
 def test_ul(args):
     expected = (-9.140625, 53.33087298301705)
     lnglat = mercantile.ul(*args)
     for a, b in zip(expected, lnglat):
-        assert round(a-b, 7) == 0
+        assert round(a - b, 7) == 0
     assert lnglat[0] == lnglat.lng
     assert lnglat[1] == lnglat.lat
 
 
 @pytest.mark.parametrize('args', [
-   (486, 332, 10),
-   [(486, 332, 10)],
-   [mercantile.Tile(486, 332, 10)],
-])
+    (486, 332, 10),
+    [(486, 332, 10)],
+    [mercantile.Tile(486, 332, 10)]])
 def test_bbox(args):
     expected = (-9.140625, 53.12040528310657, -8.7890625, 53.33087298301705)
     bbox = mercantile.bounds(*args)
     for a, b in zip(expected, bbox):
-        assert round(a-b, 7) == 0
+        assert round(a - b, 7) == 0
     assert bbox.west == bbox[0]
     assert bbox.south == bbox[1]
     assert bbox.east == bbox[2]
@@ -38,11 +36,16 @@ def test_xy():
     xy = mercantile.xy(*ul)
     expected = (-1017529.7205322663, 7044436.526761846)
     for a, b in zip(expected, xy):
-        assert round(a-b, 7) == 0
+        assert round(a - b, 7) == 0
     xy = mercantile.xy(0.0, 0.0)
     expected = (0.0, 0.0)
     for a, b in zip(expected, xy):
-        assert round(a-b, 7) == 0
+        assert round(a - b, 7) == 0
+
+
+def test_xy_truncate():
+    """Input is truncated"""
+    assert mercantile.xy(-181.0, 0.0, truncate=True) == mercantile.xy(-180.0, 0.0)
 
 
 def test_tile():
@@ -52,12 +55,29 @@ def test_tile():
     assert tile[1] == expected[1]
 
 
+def test_tile_truncate():
+    """Input is truncated"""
+    assert mercantile.tile(-181.0, 0.0, 9, truncate=True) == mercantile.tile(-180.0, 0.0, 9)
+
+
 def test_tiles():
     bounds = (-105, 39.99, -104.99, 40)
     tiles = list(mercantile.tiles(*bounds, zooms=[14]))
     expect = [mercantile.Tile(x=3413, y=6202, z=14),
               mercantile.Tile(x=3413, y=6203, z=14)]
     assert sorted(tiles) == sorted(expect)
+
+
+def test_tiles_truncate():
+    """Input is truncated"""
+    assert list(mercantile.tiles(-181.0, 0.0, -170.0, 10.0, zooms=[2], truncate=True)) \
+        == list(mercantile.tiles(-180.0, 0.0, -170.0, 10.0, zooms=[2]))
+
+
+def test_tiles_antimerdian_crossing_bbox():
+    """Antimeridian-crossing bounding boxes are handled"""
+    bounds = (175.0, 5.0, -175.0, 10.0)
+    assert len(list(mercantile.tiles(*bounds, zooms=[2]))) == 2
 
 
 def test_quadkey():
@@ -70,7 +90,12 @@ def test_quadkey_to_tile():
     qk = "0313102310"
     expected = mercantile.Tile(486, 332, 10)
     assert mercantile.quadkey_to_tile(qk) == expected
-    
+
+
+def test_quadkey_failure():
+    with pytest.raises(ValueError):
+        mercantile.quadkey_to_tile('lolwut')
+
 
 def test_parent():
     parent = mercantile.parent(486, 332, 10)
@@ -96,6 +121,17 @@ def test_overflow_bounding_tile():
         -90.00000000000003,
         180.00000000000014,
         -63.27066048950458) == (0, 0, 0)
+
+
+def test_bounding_tile_pt():
+    """A point is a valid input"""
+    assert mercantile.bounding_tile(-91.5, 1.0).z == 28
+
+
+def test_bounding_tile_truncate():
+    """Input is truncated"""
+    assert mercantile.bounding_tile(-181.0, 1.0, truncate=True) \
+        == mercantile.bounding_tile(-180.0, 1.0)
 
 
 def test_truncate_lng_under():
