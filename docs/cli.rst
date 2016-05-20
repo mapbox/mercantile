@@ -16,8 +16,10 @@ Command line interface
     Commands:
       children  Write the children of the tile.
       parent    Write the parent tile.
+      quadkey   Convert to/from quadkeys.
       shapes    Write the shapes of tiles as GeoJSON.
-      tiles     List tiles overlapped or contained by a lng/lat bounding box.
+      tiles     List tiles that overlap or contain a lng/lat point, bounding box,
+                or GeoJSON objects.
 
 Examples
 --------
@@ -41,6 +43,15 @@ of Web Mercator tiles.
     [2331, 1185, 12]
     [2330, 1185, 12]
 
+``mercantile quadkey`` will convert to/from quadkey representations of tiles.
+
+.. code-block:: console
+
+   $ mercantile quadkey "[486, 332, 10]"
+   0313102310
+
+   $ mercantile quadkey 0313102310
+   [486, 332, 10]
 
 shapes
 ------
