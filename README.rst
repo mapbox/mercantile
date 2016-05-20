@@ -75,6 +75,8 @@ See `docs/cli.rst <docs/cli.rst>`__ for more about the mercantile program.
 See Also
 ========
 
+`supermercado <https://github.com/mapbox/supermercado>`__ is another python lib with added tile logic functionality (union tile shapes, find edge tiles, and find tile intersections for complex geometries).
+
 `node-sphericalmercator <https://github.com/mapbox/node-sphericalmercator>`__
 provides many of the same features for Node.
 
