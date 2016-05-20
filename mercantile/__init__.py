@@ -1,13 +1,13 @@
 """Spherical mercator and XYZ tile utilities"""
 
-# http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
-
 from collections import namedtuple
 import math
 
 
-__all__ = ['ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile', 'quadkey', 'quadkey_to_tile']
-__version__ = '0.8.3'
+__all__ = [
+    'ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile',
+    'quadkey', 'quadkey_to_tile']
+__version__ = '0.9.0'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -110,6 +110,7 @@ def quadkey_to_tile(qk):
 
 
 def tiles(west, south, east, north, zooms, truncate=False):
+    """Yields the (x, y, z) tiles intersecting the bounding box."""
     if truncate:
         west, south = truncate_lnglat(west, south)
         east, north = truncate_lnglat(east, north)
