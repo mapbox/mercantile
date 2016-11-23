@@ -58,6 +58,19 @@ def xy(lng, lat, truncate=False):
     return x, y
 
 
+def lnglat(x, y, pi=3.141592653589793):
+    """Returns the (lng, lat) in WGS84 Datum"""
+
+    origin_shift = 2 * pi * 6378137 / 2.0
+    osd = origin_shift / 180.0
+    lng = x / osd
+    lat = y / osd
+    lat = (2 * math.atan(
+        math.exp(lat * pi / 180.0)
+    ) - (pi / 2.0)) / (pi / 180.0)
+    return lng, lat
+
+
 def tile(lng, lat, zoom, truncate=False):
     """Returns the (x, y, z) tile"""
     if truncate:
@@ -183,6 +196,31 @@ def bounding_tile(*bbox, **kwds):
     x = rshift(cell[0], (32 - z))
     y = rshift(cell[1], (32 - z))
     return Tile(x, y, z)
+
+
+def resolution(zoom):
+    initial_resolution = 20037508.342789244 * 2 / 256
+    return initial_resolution / (2 ** zoom)
+
+
+def bounds_for_viewport(lng, lat, width, height, resolution):
+    """Return (lng, lat) bounding box for specified viewport."""
+
+    half_w_deg = (width * resolution) / 2.0
+    half_h_deg = (height * resolution) / 2.0
+
+    x, y = xy(lng, lat)
+
+    return (
+        lnglat(
+            x - half_w_deg,
+            y + half_h_deg,
+        ),
+        lnglat(
+            x + half_w_deg,
+            y - half_h_deg,
+        )
+    )
 
 
 def _getBboxZoom(*bbox):

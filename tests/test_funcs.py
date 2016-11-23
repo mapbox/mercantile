@@ -48,6 +48,30 @@ def test_xy_truncate():
     assert mercantile.xy(-181.0, 0.0, truncate=True) == mercantile.xy(-180.0, 0.0)
 
 
+def test_resolution():
+    resolution = mercantile.resolution(0)
+    initial_resolution = 20037508.342789244 * 2 / 256
+    assert resolution == initial_resolution
+
+
+def test_bounds_for_viewport():
+    initial_resolution = 20037508.342789244 * 2 / 256
+    bounds = mercantile.bounds_for_viewport(
+        0, 45, 256, 256, initial_resolution
+        )
+    assert bounds == (
+        (-180.0, 87.94905406387923), (180.0, -78.08802742575901)
+    )
+
+
+def test_lnglat():
+    xy = (-1017529.7205322663, 7044436.526761846)
+    lnglat = mercantile.lnglat(*xy)
+    expected = (-9.140625, 53.33087298301705)
+    for a, b in zip(expected, lnglat):
+        assert round(a-b, 7) == 0
+
+
 def test_tile():
     tile = mercantile.tile(20.6852, 40.1222, 9)
     expected = (285, 193)
