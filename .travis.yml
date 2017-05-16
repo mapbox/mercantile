@@ -16,6 +16,4 @@ deploy:
     tags: true
   provider: pypi
   distributions: "sdist bdist_wheel"
-  user: seang
-  password:
-    secure: "zlc6H+70Pq0AFcWFW62+Yy17RkdCM+3NyWMwOjj11aT9Wj2j1SCe0Lmx1oT8oCF+e55KESDvpKM0tRrzBF6yB/nWC6IVh49U4xHCAEcbcy71RcUqPbzmsxkY56nEM3xqyV0NRm6dSjj1WGcg+u4RxIUHxNDEc7IVOu/e2SI7EVg="
+  user: mapboxci
