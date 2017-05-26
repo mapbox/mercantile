@@ -12,6 +12,7 @@ __version__ = '0.9.0'
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
+Bbox = namedtuple('Bbox', ['left', 'bottom', 'right', 'top'])
 
 
 def ul(*tile):
@@ -56,6 +57,16 @@ def xy(lng, lat, truncate=False):
     y = 6378137.0 * math.log(
         math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
     return x, y
+
+
+def xy_bounds(*tile):
+    """Returns the Spherical Mercator bounding box of a tile"""
+    if len(tile) == 1:
+        tile = tile[0]
+    xtile, ytile, zoom = tile
+    left, top = xy(*ul(xtile, ytile, zoom))
+    right, bottom = xy(*ul(xtile + 1, ytile + 1, zoom))
+    return Bbox(left, bottom, right, top)
 
 
 def tile(lng, lat, zoom, truncate=False):

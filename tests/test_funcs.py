@@ -48,6 +48,19 @@ def test_xy_truncate():
     assert mercantile.xy(-181.0, 0.0, truncate=True) == mercantile.xy(-180.0, 0.0)
 
 
+@pytest.mark.parametrize('args', [
+    (486, 332, 10),
+    [(486, 332, 10)],
+    [mercantile.Tile(486, 332, 10)]])
+def test_xy_bounds(args):
+    expected = (-1017529.7205322663, 7005300.768279833,
+                -978393.962050256, 7044436.526761846)
+    bounds = mercantile.xy_bounds(*args)
+
+    for a, b in zip(expected, bounds):
+        assert round(a - b, 7) == 0
+
+
 def test_tile():
     tile = mercantile.tile(20.6852, 40.1222, 9)
     expected = (285, 193)

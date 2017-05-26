@@ -28,6 +28,8 @@ coordinates.
     LngLatBbox(west=-9.140625, south=53.12040528310657, east=-8.7890625, north=53.33087298301705)
     >>> mercantile.xy(*mercantile.ul(486, 332, 10))
     (-1017529.7205322663, 7044436.526761846)
+    >> mercantile.xy_bounds(486, 332, 10)
+    Bbox(left=-1017529.7205322663, bottom=7005300.768279833, right=-978393.962050256, top=7044436.526761846)
     >>> mercantile.tile(*mercantile.ul(486, 332, 10) + (10,))
     Tile(x=486, y=332, z=10)
     >>> mercantile.quadkey(486, 332, 10)
