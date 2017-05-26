@@ -6,13 +6,19 @@ import math
 
 __all__ = [
     'ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile',
-    'quadkey', 'quadkey_to_tile']
-__version__ = '0.9.0'
+    'quadkey', 'quadkey_to_tile', 'xy_bounds', 'Tile', 'LngLat', 'LngLatBbox',
+    'Bbox']
+__version__ = '0.10.0'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
 Bbox = namedtuple('Bbox', ['left', 'bottom', 'right', 'top'])
+
+
+class InvalidLatitudeError(ValueError):
+    """Raised when math errors occur beyond ~85 degrees N or S"""
+    pass
 
 
 def ul(*tile):
@@ -75,13 +81,15 @@ def tile(lng, lat, zoom, truncate=False):
         lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
     n = 2.0 ** zoom
+    xtile = int(math.floor((lng + 180.0) / 360.0 * n))
+
     try:
-        xtile = int(math.floor((lng + 180.0) / 360.0 * n))
         ytile = int(math.floor((1.0 - math.log(
             math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
     except ValueError:
-        xtile = 0
-        ytile = 0
+        raise InvalidLatitudeError(
+            "Y can not be computed for latitude {} radians".format(lat))
+
     return Tile(xtile, ytile, zoom)
 
 
@@ -132,11 +140,23 @@ def tiles(west, south, east, north, zooms, truncate=False):
     else:
         bboxes = [(west, south, east, north)]
     for w, s, e, n in bboxes:
+
+        # Clamp bounding values.
+        w = max(-180.0, w)
+        s = max(-85.051129, s)
+        e = min(180.0, e)
+        n = min(85.051129, n)
+
         for z in zooms:
             ll = tile(w, s, z)
             ur = tile(e, n, z)
-            for i in range(ll.x, min(ur.x + 1, 2 ** z)):
-                for j in range(ur.y, min(ll.y + 1, 2 ** z)):
+
+            # Clamp left x and top y at 0.
+            llx = 0 if ll.x < 0 else ll.x
+            ury = 0 if ur.y < 0 else ur.y
+
+            for i in range(llx, min(ur.x + 1, 2 ** z)):
+                for j in range(ury, min(ll.y + 1, 2 ** z)):
                     yield Tile(i, j, z)
 
 
@@ -173,7 +193,7 @@ def rshift(val, n):
 
 
 def bounding_tile(*bbox, **kwds):
-    """Returns the smallest tile containing the bbox.
+    """Returns the smallest tile containing the bbox or (0, 0, 0)
 
     NB: when the bbox spans lines of lng 0 or lat 0, the bounding tile
     will be (0, 0, 0)."""
@@ -185,8 +205,13 @@ def bounding_tile(*bbox, **kwds):
         w, s = truncate_lnglat(w, s)
         e, n = truncate_lnglat(e, n)
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
-    tmin = tile(w, s, 32, truncate=truncate)
-    tmax = tile(e, n, 32, truncate=truncate)
+
+    try:
+        tmin = tile(w, s, 32, truncate=truncate)
+        tmax = tile(e, n, 32, truncate=truncate)
+    except InvalidLatitudeError:
+        return Tile(0, 0, 0)
+
     cell = tmin[:2] + tmax[:2]
     z = _getBboxZoom(*cell)
     if z == 0:
@@ -200,7 +225,7 @@ def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
         mask = 1 << (32 - (z + 1))
-        if ((bbox[0] & mask) != (bbox[2] & mask)
-                or (bbox[1] & mask) != (bbox[3] & mask)):
+        if ((bbox[0] & mask) != (bbox[2] & mask) or
+                (bbox[1] & mask) != (bbox[3] & mask)):
             return z
     return MAX_ZOOM

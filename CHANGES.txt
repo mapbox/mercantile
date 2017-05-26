@@ -1,9 +1,14 @@
 Changes
 =======
 
-0.10.0 (TODO)
--------------
-- New feature: ``xy_bounds()`` to get Spherical Mercator bounds for tile
+0.10.0 (2017-05-26)
+-------------------
+- API change: `InvalidLatitudeError` is raised by `tile()` when Y cannot be
+  computed.
+- New feature: ``xy_bounds()`` to get Spherical Mercator bounds for tile (#60).
+- New feature: ``Bbox`` class with ``left``, ``bottom``, ``top``, ``right``
+  properties (#60).
+- Bug fix: prevent ``tiles()`` from returning tiles with invalid indexes (#47).
 
 0.9.0 (2016-05-20)
 ------------------

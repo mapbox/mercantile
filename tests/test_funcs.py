@@ -93,6 +93,14 @@ def test_tiles_antimerdian_crossing_bbox():
     assert len(list(mercantile.tiles(*bounds, zooms=[2]))) == 2
 
 
+def test_global_tiles_clamped():
+    """Y is clamped to (0, 2 ** zoom - 1)"""
+    tiles = list(mercantile.tiles(-180, -90, 180, 90, [1]))
+    assert len(tiles) == 4
+    assert min(t.y for t in tiles) == 0
+    assert max(t.y for t in tiles) == 1
+
+
 def test_quadkey():
     tile = mercantile.Tile(486, 332, 10)
     expected = "0313102310"
