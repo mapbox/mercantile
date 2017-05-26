@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.10.0 (TODO)
+-------------
+- New feature: ``xy_bounds()`` to get Spherical Mercator bounds for tile
+
 0.9.0 (2016-05-20)
 ------------------
 - Refactoring: new ``normalize_input()`` and ``iterl_lines()`` functions for
