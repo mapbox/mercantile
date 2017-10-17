@@ -50,14 +50,17 @@ def test_xy_truncate():
 
 def test_lnglat():
     xy = (-8366731.739810849, -1655181.9927159143)
-
     assert mercantile.lnglat(*xy) == (-75.15963, -14.704620000000013)
+
+
+def test_lnglat_truncate():
+    xy = (-28366731.739810849, -1655181.9927159143)
+    assert mercantile.lnglat(*xy, truncate=True) == (-180, -14.704620000000013)
 
 
 def test_lnglat_xy_roundtrip():
     lnglat = (-105.0844, 40.5853)
     roundtrip = mercantile.lnglat(*mercantile.xy(*lnglat))
-
     for a, b in zip(roundtrip, lnglat):
         assert round(a - b, 4) == 0
 
