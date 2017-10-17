@@ -6,9 +6,10 @@ import math
 
 __all__ = [
     'ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile',
-    'quadkey', 'quadkey_to_tile', 'xy_bounds', 'Tile', 'LngLat', 'LngLatBbox',
-    'Bbox']
-__version__ = '0.10.0'
+    'quadkey', 'quadkey_to_tile', 'xy', 'xy_bounds', 'Tile', 'LngLat',
+    'LngLatBbox', 'Bbox']
+
+__version__ = '0.11.0'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -84,13 +85,12 @@ def lnglat(x, y, truncate=False):
 
     lng, lat = (
         x * R2D / A,
-        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D
-    )
+        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
 
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
 
-    return lng, lat
+    return LngLat(lng, lat)
 
 
 def xy_bounds(*tile):

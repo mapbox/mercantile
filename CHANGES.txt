@@ -1,22 +1,26 @@
 Changes
 =======
 
+0.11.0 (2017-10-17)
+-------------------
+- New feature: the ``lnglat`` function is the inverse of ``xy`` (#62).
+
 0.10.0 (2017-05-26)
 -------------------
-- API change: `InvalidLatitudeError` is raised by `tile()` when Y cannot be
+- API change: ``InvalidLatitudeError`` is raised by ``tile`` when Y cannot be
   computed.
-- New feature: ``xy_bounds()`` to get Spherical Mercator bounds for tile (#60).
+- New feature: ``xy_bounds`` to get Spherical Mercator bounds for tile (#60).
 - New feature: ``Bbox`` class with ``left``, ``bottom``, ``top``, ``right``
   properties (#60).
-- Bug fix: prevent ``tiles()`` from returning tiles with invalid indexes (#47).
+- Bug fix: prevent ``tiles`` from returning tiles with invalid indexes (#47).
 
 0.9.0 (2016-05-20)
 ------------------
-- Refactoring: new ``normalize_input()`` and ``iterl_lines()`` functions for
+- Refactoring: new ``normalize_input`` and ``iter_lines`` functions for
   use in the CLI (#58).
 - Refactoring: the coarse ``try/except`` blocks have been removed from within
-  CLI subcommands, ``sys.exit()`` calls are removed, and ``sys.stdout.write()``
-  calls have been replaced by ``click.echo()`` (#58).
+  CLI subcommands, ``sys.exit`` calls are removed, and ``sys.stdout.write``
+  calls have been replaced by ``click.echo`` (#58).
 - Refactoring: many PEP 8 changes and new tests to bring the project to 100%
   coverage (#58).
 - New feature: functions and subcommand for converting between tiles and
