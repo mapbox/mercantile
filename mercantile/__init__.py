@@ -65,6 +65,34 @@ def xy(lng, lat, truncate=False):
     return x, y
 
 
+def lnglat(x, y, truncate=False):
+    """Convert Spherical Mercator x, y to lng, lat
+
+    Parameters
+    ----------
+    x: number
+        Spherical Mercator x-coordinate
+    y: number
+        Spherical Mercator y-coordinate
+
+    Returns
+    -------
+    (lng, lat): tuple
+    """
+    R2D = 180 / math.pi
+    A = 6378137.0
+
+    lng, lat = (
+        x * R2D / A,
+        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D
+    )
+
+    if truncate:
+        lng, lat = truncate_lnglat(lng, lat)
+
+    return lng, lat
+
+
 def xy_bounds(*tile):
     """Returns the Spherical Mercator bounding box of a tile"""
     if len(tile) == 1:
