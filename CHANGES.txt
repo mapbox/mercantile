@@ -4,6 +4,10 @@ Changes
 0.11.0 (2017-10-17)
 -------------------
 - New feature: the ``lnglat`` function is the inverse of ``xy`` (#62).
+- New feature: the --bounding-tile option of mercantile-tiles has been made
+  into a new mercantile-bounding-tile command (#43).
+- API change: the --bounding-tile and --with-bounds options of
+  mercantile-tiles have been removed.
 
 0.10.0 (2017-05-26)
 -------------------

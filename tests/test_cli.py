@@ -1,8 +1,7 @@
-import json
+"""Tests of the mercantile CLI"""
 
 from click.testing import CliRunner
 
-import mercantile
 from mercantile.scripts import cli
 
 
@@ -98,6 +97,14 @@ def test_cli_tiles_bad_bounds():
     assert result.exit_code == 2
 
 
+def test_cli_bounding_tile_bad_bounds():
+    """Bounds of len 3 are bad."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['bounding-tile'], '[-105, 39.99, -104.99]')
+    assert result.exit_code == 2
+
+
 def test_cli_tiles_no_bounds():
     runner = CliRunner()
     result = runner.invoke(
@@ -114,6 +121,7 @@ def test_cli_tiles_multi_bounds():
     assert result.exit_code == 0
     assert len(result.output.strip().split('\n')) == 4
 
+
 def test_cli_tiles_multi_bounds_seq():
     """A JSON text sequence can be used as input."""
     runner = CliRunner()
@@ -123,18 +131,51 @@ def test_cli_tiles_multi_bounds_seq():
     assert len(result.output.strip().split('\n')) == 4
 
 
-def test_cli_tiles_bounding_tiles():
+def test_cli_bounding_tile():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ['tiles', '--bounding-tile'], '[-105, 39.99, -104.99, 40]')
+        cli, ['bounding-tile'], '[-105, 39.99, -104.99, 40]')
     assert result.exit_code == 0
     assert result.output == '[1706, 3101, 13]\n'
+
+
+def test_cli_bounding_tile_bbox():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['bounding-tile'], '{"bbox": [-105, 39.99, -104.99, 40]}')
+    assert result.exit_code == 0
+    assert result.output == '[1706, 3101, 13]\n'
+
+
+def test_cli_bounding_tile2():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['bounding-tile'], '[-105, 39.99]')
+    assert result.exit_code == 0
+
+
+def test_cli_multi_bounding_tile():
+    """A JSON text sequence can be used as input."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['bounding-tile'], '[-105, 39.99, -104.99, 40]\n[-105, 39.99, -104.99, 40]')
+    assert result.exit_code == 0
+    assert len(result.output.strip().split('\n')) == 2
+
+
+def test_cli_multi_bounding_tile_seq():
+    """A JSON text sequence can be used as input."""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['bounding-tile'], '\x1e\n[-105, 39.99, -104.99, 40]\n\x1e\n[-105, 39.99, -104.99, 40]')
+    assert result.exit_code == 0
+    assert len(result.output.strip().split('\n')) == 2
 
 
 def test_cli_tiles_bounding_tiles_z0():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ['tiles', '--bounding-tile'], '[-1, -1, 1, 1]')
+        cli, ['bounding-tile'], '[-1, -1, 1, 1]')
     assert result.exit_code == 0
     assert result.output == '[0, 0, 0]\n'
 
@@ -142,18 +183,9 @@ def test_cli_tiles_bounding_tiles_z0():
 def test_cli_tiles_bounding_tiles_seq():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ['tiles', '--bounding-tile', '--seq'], '[-1, -1, 1, 1]')
+        cli, ['bounding-tile', '--seq'], '[-1, -1, 1, 1]')
     assert result.exit_code == 0
     assert result.output == '\x1e\n[0, 0, 0]\n'
-
-
-def test_cli_tiles_bounds():
-    runner = CliRunner()
-    result = runner.invoke(
-        cli, ['tiles', '--with-bounds', '14'], '[-105, 39.99, -104.99, 40]')
-    assert result.exit_code == 0
-    first, last = result.output.strip().split('\n')
-    assert [round(x, 3) for x in json.loads(first)][3:] == [-105.007, 39.994, -104.985, 40.011]
 
 
 def test_cli_tiles_implicit_stdin():
@@ -179,6 +211,15 @@ def test_cli_tiles_geosjon():
         cli, ['tiles', '9'], collection)
     assert result.exit_code == 0
     assert result.output == '[106, 193, 9]\n[106, 194, 9]\n'
+
+
+def test_cli_bounding_tile_geosjon():
+    collection = '{"features": [{"geometry": {"coordinates": [[[-105.46875, 39.909736], [-105.46875, 40.446947], [-104.765625, 40.446947], [-104.765625, 39.909736], [-105.46875, 39.909736]]], "type": "Polygon"}, "id": "(106, 193, 9)", "properties": {"title": "XYZ tile (106, 193, 9)"}, "type": "Feature"}], "type": "FeatureCollection"}'
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ['bounding-tile'], collection)
+    assert result.exit_code == 0
+    assert result.output == '[26, 48, 7]\n'
 
 
 def test_cli_parent_failure():
