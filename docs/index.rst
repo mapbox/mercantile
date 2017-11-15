@@ -17,7 +17,7 @@ Quick start
 In the XYZ tiling system, the region of the world from 85.0511 (more precisely:
 ``arctan(sinh(π))``) degrees south of the Equator to 85.0511 degrees north is
 covered at zoom level 0 by a single tile. The number of tiles at each zoom
-level is ``2**(z-1)``. At zoom level 1, we have 4 tiles.
+level is ``2**(2*Z)``. At zoom level 1, we have 4 tiles.
 
 .. code-block:: none
 
