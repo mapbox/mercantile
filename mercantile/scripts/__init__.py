@@ -131,10 +131,10 @@ def shapes(
         dump_kwds['separators'] = (',', ':')
 
     src = normalize_input(input)
-
     features = []
     col_xs = []
     col_ys = []
+
     for i, line in enumerate(iter_lines(src)):
         obj = json.loads(line)
         if isinstance(obj, dict):
@@ -148,42 +148,15 @@ def shapes(
         else:
             raise click.BadParameter(
                 "{0}".format(obj), param=input, param_hint='input')
-        west, south, east, north = mercantile.bounds(x, y, z)
-        if projected == 'mercator':
-            west, south = mercantile.xy(west, south, truncate=False)
-            east, north = mercantile.xy(east, north, truncate=False)
-        if buffer:
-            west -= buffer
-            south -= buffer
-            east += buffer
-            north += buffer
-        if precision and precision >= 0:
-            west, south, east, north = (
-                round(v, precision) for v in (west, south, east, north))
-        bbox = [
-            min(west, east), min(south, north),
-            max(west, east), max(south, north)]
-        col_xs.extend([west, east])
-        col_ys.extend([south, north])
-        geom = {
-            'type': 'Polygon',
-            'coordinates': [[
-                [west, south],
-                [west, north],
-                [east, north],
-                [east, south],
-                [west, south]]]}
-        xyz = str((x, y, z))
-        feature = {
-            'type': 'Feature',
-            'bbox': bbox,
-            'id': xyz,
-            'geometry': geom,
-            'properties': {'title': 'XYZ tile %s' % xyz}}
-        if props:
-            feature['properties'].update(props)
-        if fid:
-            feature['id'] = fid
+
+        feature = mercantile.feature(
+            x, y, z, fid=fid, props=props, projected=projected, buffer=buffer,
+            precision=precision)
+        bbox = feature['bbox']
+        w, s, e, n = bbox
+        col_xs.extend([w, e])
+        col_ys.extend([s, n])
+
         if collect:
             features.append(feature)
         elif extents:
@@ -364,7 +337,8 @@ def parent(ctx, input, depth):
     for line in iter_lines(src):
         tile = json.loads(line)[:3]
         if tile[2] - depth < 0:
-            raise click.UsageError("Invalid parent level: {0}".format(tile[2] - depth))
+            raise click.UsageError(
+                "Invalid parent level: {0}".format(tile[2] - depth))
         for i in range(depth):
             tile = mercantile.parent(tile)
         output = json.dumps(tile)
