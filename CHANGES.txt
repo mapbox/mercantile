@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.0.0 (2017-11-14)
+------------------
+- New feature: the ``feature`` function returns a GeoJSON feature for a tile
+  (#46).
+
 0.11.0 (2017-10-17)
 -------------------
 - New feature: the ``lnglat`` function is the inverse of ``xy`` (#62).

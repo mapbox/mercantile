@@ -7,9 +7,9 @@ import math
 __all__ = [
     'ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile',
     'quadkey', 'quadkey_to_tile', 'xy', 'xy_bounds', 'Tile', 'LngLat',
-    'LngLatBbox', 'Bbox']
+    'LngLatBbox', 'Bbox', 'shape']
 
-__version__ = '0.11.0'
+__version__ = '1.0.0'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
@@ -257,3 +257,44 @@ def _getBboxZoom(*bbox):
                 (bbox[1] & mask) != (bbox[3] & mask)):
             return z
     return MAX_ZOOM
+
+
+def feature(
+        x, y, z, fid=None, props=None, projected='geographic', buffer=None,
+        precision=None):
+    """Returns a GeoJSON feature corresponding to the tile"""
+    west, south, east, north = bounds(x, y, z)
+    if projected == 'mercator':
+        west, south = xy(west, south, truncate=False)
+        east, north = xy(east, north, truncate=False)
+    if buffer:
+        west -= buffer
+        south -= buffer
+        east += buffer
+        north += buffer
+    if precision and precision >= 0:
+        west, south, east, north = (
+            round(v, precision) for v in (west, south, east, north))
+    bbox = [
+        min(west, east), min(south, north),
+        max(west, east), max(south, north)]
+    geom = {
+        'type': 'Polygon',
+        'coordinates': [[
+            [west, south],
+            [west, north],
+            [east, north],
+            [east, south],
+            [west, south]]]}
+    xyz = str((x, y, z))
+    feature = {
+        'type': 'Feature',
+        'bbox': bbox,
+        'id': xyz,
+        'geometry': geom,
+        'properties': {'title': 'XYZ tile %s' % xyz}}
+    if props:
+        feature['properties'].update(props)
+    if fid:
+        feature['id'] = fid
+    return feature
