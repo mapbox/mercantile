@@ -3,7 +3,7 @@ Command line interface
 
 .. code-block:: console
 
-    $ mercantile
+    $ mercantile --help
     Usage: mercantile [OPTIONS] COMMAND [ARGS]...
 
       Command line interface for the Mercantile Python package.
@@ -14,12 +14,14 @@ Command line interface
       --help         Show this message and exit.
 
     Commands:
-      children  Write the children of the tile.
-      parent    Write the parent tile.
-      quadkey   Convert to/from quadkeys.
-      shapes    Write the shapes of tiles as GeoJSON.
-      tiles     List tiles that overlap or contain a lng/lat point, bounding box,
-                or GeoJSON objects.
+      bounding-tile  Print the bounding tile of a lng/lat point, bounding box, or
+                     GeoJSON objects.
+      children       Print the children of the tile.
+      parent         Print the parent tile.
+      quadkey        Convert to/from quadkeys.
+      shapes         Print the shapes of tiles as GeoJSON.
+      tiles          Print tiles that overlap or contain a lng/lat point, bounding
+                     box, or GeoJSON objects.
 
 Examples
 --------
@@ -101,6 +103,35 @@ The shapes command writes Mercator tile shapes to several forms of GeoJSON.
       "type": "FeatureCollection"
     }
 
+bounding-tile
+-------------
+
+With the bounding-tile command you can write the input's bounding tile, the
+smallest mercator tile of any resolution that completely contains the input.
+
+.. code-block:: console
+
+    $ echo "[-105, 39.99, -104.99, 40]" | mercantile bounding-tile
+    [1706, 3101, 13]
+
+Note well that when the input crosses lng 0 or lat 0, or any such tile 
+boundary, the bounding tile will be at a shallow zoom level.
+
+.. code-block:: console
+
+    $ echo "[-1, 1, 1, 2]" | mercantile bounding-tile
+    [0, 0, 0]
+    $ echo "[-91, 1, -89, 2]" | mercantile bounding-tile
+    [0, 0, 1]
+
+Compare these bounding tiles to the one for a similarly size input box
+shifted away from the zoom=1 tile intersection.
+
+.. code-block:: console
+
+    $ echo "[-92, 1, -91, 2]" | mercantile tiles bounding-tile
+    [31, 63, 7]
+
 tiles
 -----
 
@@ -113,31 +144,6 @@ a geographic point, bounding box, or GeoJSON object.
     [3413, 6202, 14]
     [3413, 6203, 14]
 
-Optionally, you can write the input's bounding tile, the smallest mercator
-tile of any resolution that completely contains the input.
-
-.. code-block:: console
-
-    $ echo "[-105, 39.99, -104.99, 40]" | mercantile tiles --bounding-tile
-    [1706, 3101, 13]
-
-Note well that when the input crosses lng 0 or lat 0, or any such tile 
-boundary, the bounding tile will be at a shallow zoom level.
-
-.. code-block:: console
-
-    $ echo "[-1, 1, 1, 2]" | mercantile tiles --bounding-tile
-    [0, 0, 0]
-    $ echo "[-91, 1, -89, 2]" | mercantile tiles --bounding-tile
-    [0, 0, 1]
-
-Compare these bounding tiles to the one for a similarly size input box
-shifted away from the zoom=1 tile intersection.
-
-.. code-block:: console
-
-    $ echo "[-92, 1, -91, 2]" | mercantile tiles --bounding-tile
-    [31, 63, 7]
 
 The commands can be piped together to do this:
 

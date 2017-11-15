@@ -57,7 +57,7 @@ that intersect with a GeoJSON bounding box.
 
 .. code-block:: console
 
-    $ mercantile
+    $ mercantile --help
     Usage: mercantile [OPTIONS] COMMAND [ARGS]...
 
       Command line interface for the Mercantile Python package.
@@ -68,12 +68,14 @@ that intersect with a GeoJSON bounding box.
       --help         Show this message and exit.
 
     Commands:
-      children  Write the children of the tile.
-      parent    Write the parent tile.
-      quadkey   Convert to/from quadkeys.
-      shapes    Write the shapes of tiles as GeoJSON.
-      tiles     List tiles that overlap or contain a lng/lat point, bounding box,
-                or GeoJSON objects.
+      bounding-tile  Print the bounding tile of a lng/lat point, bounding box, or
+                     GeoJSON objects.
+      children       Print the children of the tile.
+      parent         print the parent tile.
+      quadkey        Convert to/from quadkeys.
+      shapes         Print the shapes of tiles as GeoJSON.
+      tiles          Print tiles that overlap or contain a lng/lat point, bounding
+                     box, or GeoJSON objects.
 
 See `docs/cli.rst <docs/cli.rst>`__ for more about the mercantile program.
 
@@ -81,7 +83,9 @@ See `docs/cli.rst <docs/cli.rst>`__ for more about the mercantile program.
 See Also
 ========
 
-`supermercado <https://github.com/mapbox/supermercado>`__ is another python lib with added tile logic functionality (union tile shapes, find edge tiles, and find tile intersections for complex geometries).
+`supermercado <https://github.com/mapbox/supermercado>`__ is another python lib
+with added tile logic functionality (union tile shapes, find edge tiles, and
+find tile intersections for complex geometries).
 
 `node-sphericalmercator <https://github.com/mapbox/node-sphericalmercator>`__
 provides many of the same features for Node.

@@ -68,7 +68,7 @@ def cli(ctx, verbose, quiet):
 
 
 # The shapes command.
-@cli.command(short_help="Write the shapes of tiles as GeoJSON.")
+@cli.command(short_help="Print the shapes of tiles as GeoJSON.")
 # This input is either a filename, stdin, or a string.
 @click.argument('input', default='-', required=False)
 # Coordinate precision option.
@@ -183,7 +183,7 @@ def shapes(
 
 
 # The tiles command.
-@cli.command(short_help="List tiles that overlap or contain a lng/lat point, "
+@cli.command(short_help="Print tiles that overlap or contain a lng/lat point, "
                         "bounding box, or GeoJSON objects.")
 # Mandatory Mercator zoom level argument.
 @click.argument('zoom', type=int, default=-1)
@@ -360,7 +360,7 @@ def bounding_tile(ctx, input, seq):
 
 
 # The children command.
-@cli.command(short_help="Write the children of the tile.")
+@cli.command(short_help="Print the children of the tile.")
 @click.argument('input', default='-', required=False)
 @click.option('--depth', type=int, default=1,
               help="Number of zoom levels to traverse (default is 1).")
@@ -392,7 +392,7 @@ def children(ctx, input, depth):
 
 
 # The parent command.
-@cli.command(short_help="Write the parent tile.")
+@cli.command(short_help="Print the parent tile.")
 @click.argument('input', default='-', required=False)
 @click.option('--depth', type=int, default=1,
               help="Number of zoom levels to traverse (default is 1).")
