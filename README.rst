@@ -4,11 +4,19 @@ Mercantile
 
 .. image:: https://travis-ci.org/mapbox/mercantile.svg
    :target: https://travis-ci.org/mapbox/mercantile
+   :alt: Build Status
 
 .. image:: https://coveralls.io/repos/github/mapbox/mercantile/badge.svg?branch=master
    :target: https://coveralls.io/github/mapbox/mercantile?branch=master
+   :alt: Coverage Status
+
+.. image:: https://readthedocs.org/projects/mercantile/badge/?version=latest
+   :target: http://mercantile.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 Spherical mercator coordinate and tile utilities
+
+Documentation: http://mercantile.readthedocs.io/en/latest/
 
 The mercantile module provides ``ul(xtile, ytile, zoom)`` and ``bounds(xtile,
 ytile, zoom)`` functions that respectively return the upper left corner and
