@@ -7,9 +7,9 @@ import math
 __all__ = [
     'ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile',
     'quadkey', 'quadkey_to_tile', 'xy', 'xy_bounds', 'Tile', 'LngLat',
-    'LngLatBbox', 'Bbox', 'shape']
+    'LngLatBbox', 'Bbox', 'feature']
 
-__version__ = '1.0.0'
+__version__ = '1.0a1'
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
