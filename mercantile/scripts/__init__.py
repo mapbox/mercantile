@@ -116,7 +116,12 @@ def shapes(
     default) or a JSON sequence of GeoJSON features/collections to
     stdout.
 
-    tile descriptions may be either an [x, y, z] array or a JSON
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
+
+    Tile descriptions may be either an [x, y, z] array or a JSON
     object of the form
 
       {"tile": [x, y, z], "properties": {"name": "foo", ...}}
@@ -192,7 +197,12 @@ def tiles(ctx, zoom, input, seq):
     """Lists Web Mercator tiles at ZOOM level intersecting
     GeoJSON [west, south, east, north] bounding boxen, features, or
     collections read from stdin. Output is a JSON
-    [x, y, z [, west, south, east, north -- optional]] array.
+    [x, y, z] array.
+
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
 
     Example:
 
@@ -284,13 +294,18 @@ def bounding_tile(ctx, input, seq):
     GeoJSON [west, south, east, north] bounding boxes, features, or
     collections read from stdin.
 
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
+
     Example:
 
     $ echo "[-105.05, 39.95, -105, 40]" | mercantile bounding-tile
 
     Output:
 
-    [852, 1550, 12]
+    [426, 775, 11]
     """
     src = iter(normalize_input(input))
     first_line = next(src)
@@ -351,8 +366,13 @@ def bounding_tile(ctx, input, seq):
               help="Number of zoom levels to traverse (default is 1).")
 @click.pass_context
 def children(ctx, input, depth):
-    """Takes a [x, y, z] tile as input and writes its children to stdout
+    """Takes [x, y, z] tiles as input and writes children to stdout
     in the same form.
+
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
 
     $ echo "[486, 332, 10]" | mercantile parent
 
@@ -378,8 +398,13 @@ def children(ctx, input, depth):
               help="Number of zoom levels to traverse (default is 1).")
 @click.pass_context
 def parent(ctx, input, depth):
-    """Takes a [x, y, z] tile as input and writes its parent to stdout
+    """Takes [x, y, z] tiles as input and writes parents to stdout
     in the same form.
+
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
 
     $ echo "[486, 332, 10]" | mercantile parent
 
@@ -403,8 +428,13 @@ def parent(ctx, input, depth):
 @click.argument('input', default='-', required=False)
 @click.pass_context
 def quadkey(ctx, input):
-    """Takes a [x, y, z] tile or a quadkey as input and writes a
-    quadkey or a [x, y, z] tile to stdout, respectively.
+    """Takes [x, y, z] tiles or quadkeys as input and writes
+    quadkeys or a [x, y, z] tiles to stdout, respectively.
+
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
 
     $ echo "[486, 332, 10]" | mercantile quadkey
 
