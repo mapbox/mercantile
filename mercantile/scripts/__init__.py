@@ -155,8 +155,8 @@ def shapes(
                 "{0}".format(obj), param=input, param_hint='input')
 
         feature = mercantile.feature(
-            x, y, z, fid=fid, props=props, projected=projected, buffer=buffer,
-            precision=precision)
+            (x, y, z), fid=fid, props=props, projected=projected,
+            buffer=buffer, precision=precision)
         bbox = feature['bbox']
         w, s, e, n = bbox
         col_xs.extend([w, e])

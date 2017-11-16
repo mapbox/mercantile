@@ -11,19 +11,76 @@ __all__ = [
 
 __version__ = '1.0a1'
 
+
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
+"""An XYZ web mercator tile
+
+Attributes
+----------
+x, y, z : int
+    x and y indexes of the tile and zoom level z.
+"""
+
+
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
+"""A longitude and latitude pair
+
+Attributes
+----------
+lng, lat : float
+    Longitude and latitude in decimal degrees east or north.
+"""
+
+
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
+"""A geographic bounding box
+
+Attributes
+----------
+west, south, east, north : float
+    Bounding values in decimal degrees.
+"""
+
+
 Bbox = namedtuple('Bbox', ['left', 'bottom', 'right', 'top'])
+"""A web mercator bounding box
+
+Attributes
+----------
+left, bottom, right, top : float
+    Bounding values in meters.
+"""
 
 
-class InvalidLatitudeError(ValueError):
+class MercantileError(Exception):
+    """Base exception"""
+
+
+class InvalidLatitudeError(MercantileError):
     """Raised when math errors occur beyond ~85 degrees N or S"""
-    pass
 
 
 def ul(*tile):
-    """Returns the upper left (lon, lat) of a tile"""
+    """Returns the upper left longitude and latitude of a tile
+
+    Parameters
+    ----------
+    tile : Tile or ints
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    LngLat
+
+    Examples
+    --------
+
+    >>> ul(Tile(x=0, y=0, z=1))
+    LngLat(lng=-180.0, lat=85.0511287798066)
+
+    >>> mercantile.ul(1, 1, 1)
+    LngLat(lng=0.0, lat=0.0)
+    """
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
@@ -35,7 +92,17 @@ def ul(*tile):
 
 
 def bounds(*tile):
-    """Returns the (lon, lat) bounding box of a tile"""
+    """Returns the bounding box of a tile
+
+    Parameters
+    ----------
+    tile : Tile or ints
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    LngLatBBox
+    """
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
@@ -57,7 +124,19 @@ def truncate_lnglat(lng, lat):
 
 
 def xy(lng, lat, truncate=False):
-    """Returns the Spherical Mercator (x, y) in meters"""
+    """Convert longitude and latitude to web mercator x, y
+
+    Parameters
+    ----------
+    lng, lat : float
+        Longitude and latitude in decimal degrees.
+    truncate : bool, optional
+        Whether to truncate or clip inputs to web mercator limits.
+
+    Returns
+    -------
+    x, y : float
+    """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     x = 6378137.0 * math.radians(lng)
@@ -67,34 +146,41 @@ def xy(lng, lat, truncate=False):
 
 
 def lnglat(x, y, truncate=False):
-    """Convert Spherical Mercator x, y to lng, lat
+    """Convert web mercator x, y to longitude and latitude
 
     Parameters
     ----------
-    x: number
-        Spherical Mercator x-coordinate
-    y: number
-        Spherical Mercator y-coordinate
+    x, y : float
+        web mercator coordinates in meters.
+    truncate : bool, optional
+        Whether to truncate or clip inputs to web mercator limits.
 
     Returns
     -------
-    (lng, lat): tuple
+    LngLat
     """
     R2D = 180 / math.pi
     A = 6378137.0
-
     lng, lat = (
         x * R2D / A,
         ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
-
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
-
     return LngLat(lng, lat)
 
 
 def xy_bounds(*tile):
-    """Returns the Spherical Mercator bounding box of a tile"""
+    """Get the web mercator bounding box of a tile
+
+    Parameters
+    ----------
+    tile : Tile or ints
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    Bbox
+    """
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
@@ -104,7 +190,21 @@ def xy_bounds(*tile):
 
 
 def tile(lng, lat, zoom, truncate=False):
-    """Returns the (x, y, z) tile"""
+    """Get the tile containing a longitude and latitude
+
+    Parameters
+    ----------
+    lng, lat : float
+        A longitude and latitude pair in decimal degrees.
+    zoom : int
+        The web mercator zoom level.
+    truncate : bool, optional
+        Whether or not to truncate inputs to limits of web mercator.
+
+    Returns
+    -------
+    Tile
+    """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
@@ -117,16 +217,24 @@ def tile(lng, lat, zoom, truncate=False):
     except ValueError:
         raise InvalidLatitudeError(
             "Y can not be computed for latitude {} radians".format(lat))
-
-    return Tile(xtile, ytile, zoom)
+    else:
+        return Tile(xtile, ytile, zoom)
 
 
 def quadkey(*tile):
-    """Returns the quadkey of an (x, y, z) tile."""
+    """Get the quadkey of a tile
+
+    Parameters
+    ----------
+    tile: Tile or ints
+
+    Returns
+    -------
+    str
+    """
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
-
     qk = []
     for z in range(zoom, 0, -1):
         digit = 0
@@ -140,7 +248,17 @@ def quadkey(*tile):
 
 
 def quadkey_to_tile(qk):
-    """Returns the (x, y, z) tile of the given quadkey."""
+    """Get the tile corresponding to a quadkey
+
+    Parameters
+    ----------
+    qk : str
+        The quadkey
+
+    Returns
+    -------
+    Tile
+    """
     xtile, ytile = 0, 0
     for i, digit in enumerate(reversed(qk)):
         mask = 1 << i
@@ -157,7 +275,21 @@ def quadkey_to_tile(qk):
 
 
 def tiles(west, south, east, north, zooms, truncate=False):
-    """Yields the (x, y, z) tiles intersecting the bounding box."""
+    """Get the tiles intersecting a geographic bounding box
+
+    Parameters
+    ----------
+    west, south, east, north : float
+        Bounding values in decimal degrees.
+    zooms : int or sequence of ints
+        One or more zoom levels.
+    truncate : bool, optional
+        Whether or not to truncate inputs to web mercator limits.
+
+    Yields
+    ------
+    Tile
+    """
     if truncate:
         west, south = truncate_lnglat(west, south)
         east, north = truncate_lnglat(east, north)
@@ -189,7 +321,20 @@ def tiles(west, south, east, north, zooms, truncate=False):
 
 
 def parent(*tile):
-    """Returns the parent of an (x, y, z) tile."""
+    """Get the parent of a tile
+
+    The parent is the tile of one zoom level lower that contains the
+    given "child" tile.
+
+    Parameters
+    ----------
+    tile : Tile or ints
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    Tile
+    """
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
@@ -205,7 +350,17 @@ def parent(*tile):
 
 
 def children(*tile):
-    """Returns the children of an (x, y, z) tile."""
+    """Get the four children of a tile
+
+    Parameters
+    ----------
+    tile : Tile or ints
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    list
+    """
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
@@ -221,10 +376,20 @@ def rshift(val, n):
 
 
 def bounding_tile(*bbox, **kwds):
-    """Returns the smallest tile containing the bbox or (0, 0, 0)
+    """Get the smallest tile containing a geographic bounding box
 
     NB: when the bbox spans lines of lng 0 or lat 0, the bounding tile
-    will be (0, 0, 0)."""
+    will be Tile(x=0, y=0, z=0).
+
+    Parameters
+    ----------
+    bbox : floats
+        South, west, east, north bounding values in decimal degrees.
+
+    Returns
+    -------
+    Tile
+    """
     if len(bbox) == 2:
         bbox += bbox
     w, s, e, n = bbox
@@ -260,10 +425,32 @@ def _getBboxZoom(*bbox):
 
 
 def feature(
-        x, y, z, fid=None, props=None, projected='geographic', buffer=None,
+        tile, fid=None, props=None, projected='geographic', buffer=None,
         precision=None):
-    """Returns a GeoJSON feature corresponding to the tile"""
-    west, south, east, north = bounds(x, y, z)
+    """Get the GeoJSON feature corresponding to a tile
+
+    Parameters
+    ----------
+    tile : Tile or ints
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+    fid : str, optional
+        A feature id.
+    props : dict, optional
+        Optional extra feature properties.
+    projected : str, optional
+        Non-standard web mercator GeoJSON can be created by passing
+        'mercator'.
+    buffer : float, optional
+        Optional buffer distance for the GeoJSON polygon.
+    precision : int, optional
+        GeoJSON coordinates will be truncated to this number of decimal
+        places.
+
+    Returns
+    -------
+    dict
+    """
+    west, south, east, north = bounds(tile)
     if projected == 'mercator':
         west, south = xy(west, south, truncate=False)
         east, north = xy(east, north, truncate=False)
@@ -286,7 +473,7 @@ def feature(
             [east, north],
             [east, south],
             [west, south]]]}
-    xyz = str((x, y, z))
+    xyz = str(tile)
     feature = {
         'type': 'Feature',
         'bbox': bbox,

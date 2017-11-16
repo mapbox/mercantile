@@ -3,6 +3,13 @@ import pytest
 import mercantile
 
 
+def test_tile_unpacking():
+    x, y, z = mercantile.Tile(x=1, y=2, z=3)
+    assert x == 1
+    assert y == 2
+    assert z == 3
+
+
 @pytest.mark.parametrize('args', [
     (486, 332, 10),
     [(486, 332, 10)],
