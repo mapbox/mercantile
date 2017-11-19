@@ -9,12 +9,13 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    quickstart
    install
-   api
+   api/modules.rst
    cli
+   changelog
 
 Indices and tables
 ------------------
