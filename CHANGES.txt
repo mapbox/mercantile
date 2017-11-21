@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.0b1 (2017-11-21)
+------------------
+- Documentation: overhauled API reference docs based on output of
+  sphinx-apidoc.
+
 1.0a1 (2017-11-16)
 ------------------
 - New feature: the ``feature`` function returns a GeoJSON feature for a tile
