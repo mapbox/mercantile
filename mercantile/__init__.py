@@ -9,7 +9,7 @@ __all__ = [
     'quadkey', 'quadkey_to_tile', 'xy', 'xy_bounds', 'Tile', 'LngLat',
     'LngLatBbox', 'Bbox', 'feature']
 
-__version__ = '1.0a1'
+__version__ = '1.0b1'
 
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
