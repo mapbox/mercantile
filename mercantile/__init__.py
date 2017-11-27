@@ -5,11 +5,11 @@ import math
 
 
 __all__ = [
-    'ul', 'bounds', 'xy', 'tile', 'parent', 'children', 'bounding_tile',
-    'quadkey', 'quadkey_to_tile', 'xy', 'xy_bounds', 'Tile', 'LngLat',
-    'LngLatBbox', 'Bbox', 'feature']
+    'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
+    'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
+    'tile', 'tiles', 'ul', 'xy_bounds']
 
-__version__ = '1.0b1'
+__version__ = '1.0b2'
 
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
@@ -474,14 +474,14 @@ def feature(
             [east, south],
             [west, south]]]}
     xyz = str(tile)
-    feature = {
+    feat = {
         'type': 'Feature',
         'bbox': bbox,
         'id': xyz,
         'geometry': geom,
         'properties': {'title': 'XYZ tile %s' % xyz}}
     if props:
-        feature['properties'].update(props)
+        feat['properties'].update(props)
     if fid:
-        feature['id'] = fid
-    return feature
+        feat['id'] = fid
+    return feat

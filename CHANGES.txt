@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.0b2 (2017-11-27)
+------------------
+- Add ``tiles`` to ``__all__`` and sort that list. This sorts the classes
+  and functions in the API docs.
+
 1.0b1 (2017-11-21)
 ------------------
 - Documentation: overhauled API reference docs based on output of
