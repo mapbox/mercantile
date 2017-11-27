@@ -5,6 +5,8 @@ Mercantile is a module of utilities for working with XYZ style spherical
 mercator tiles (as in Google Maps, OSM, Mapbox, etc.) and includes a set of
 command line programs built on these utilities.
 
+Project repository: https://github.com/mapbox/mercantile
+
 Contents
 --------
 
