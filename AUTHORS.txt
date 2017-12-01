@@ -2,10 +2,10 @@ Authors
 =======
 
 * Sean Gillies <sean@mapbox.com>
-* Matthew Perry <perrygeo@gmail.com>
-* Patrick M Young <patrick.mckendree.young@gmail.com>
-* Amit Kapadia <akapad@gmail.com>
-* dnomadb <damon@mapbox.com>
-* Stefano Costa <steko@iosa.it>
-* Jacob Wasserman <jwasserman@gmail.com>
-* Brendan Ward <bcward@consbio.org>
+* Matthew Perry
+* Patrick M Young
+* Amit Kapadia
+* Damon Burgett
+* Stefano Costa
+* Jacob Wasserman
+* Brendan Ward
