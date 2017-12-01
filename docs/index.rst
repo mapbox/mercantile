@@ -18,6 +18,8 @@ Contents
    api/modules.rst
    cli
    changelog
+   license
+   authors
 
 Indices and tables
 ------------------
