@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.0.0 (2017-12-01)
+------------------
+
+Thanks to all contributors (see AUTHORS.txt), users, and testers, Mercantile
+1.0.0 is ready. Share and enjoy!
+
 1.0b2 (2017-11-27)
 ------------------
 - Add ``tiles`` to ``__all__`` and sort that list. This sorts the classes

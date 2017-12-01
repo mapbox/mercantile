@@ -1,14 +1,6 @@
 from setuptools import setup, find_packages
-import sys, os
-
-# Parse the version from the fiona module.
-with open('mercantile/__init__.py') as f:
-    for line in f:
-        if line.find("__version__") >= 0:
-            version = line.split("=")[1].strip()
-            version = version.strip('"')
-            version = version.strip("'")
-            continue
+import os
+import sys
 
 open_kwds = {}
 if sys.version_info > (3,):
@@ -18,14 +10,16 @@ with open('README.rst', **open_kwds) as f:
     readme = f.read()
 
 setup(name='mercantile',
-      version=version,
-      description="Spherical mercator and XYZ tile utilities",
+      version='1.0.0',
+      description="Web mercator XYZ tile utilities",
       long_description=readme,
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      keywords='',
+      classifiers=[
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3'],
+      keywords='mapping, web mercator, tiles',
       author='Sean Gillies',
       author_email='sean@mapbox.com',
-      url='https://github.com/sgillies/mercantile',
+      url='https://github.com/mapbox/mercantile',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,

@@ -1,15 +1,15 @@
-"""Spherical mercator and XYZ tile utilities"""
+"""Web mercator XYZ tile utilities"""
 
 from collections import namedtuple
 import math
 
 
+__version__ = '1.0.0'
+
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
     'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
     'tile', 'tiles', 'ul', 'xy_bounds']
-
-__version__ = '1.0b2'
 
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
