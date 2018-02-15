@@ -233,14 +233,11 @@ or do a round trip like this
     $  echo "[106, 193, 9]" | mercantile shapes | mercantile tiles 9
     [106, 193, 9]
 
-If you have `geojsonio-cli <https://github.com/mapbox/geojsonio-cli>`__
-and `fiona <https://pypi.python.org/pypi/Fiona>`_ installed, you can shoot this GeoJSON straight to `geojson.io
-<http://geojson.io/>`__ for lightning-fast visualization and editing.
+If you have `geojsonio-cli <https://github.com/mapbox/geojsonio-cli>`_ installed, you can shoot this GeoJSON straight to `geojson.io <http://geojson.io/>`__ for lightning-fast visualization and editing.
 
 .. code-block:: console
 
     $ echo "[-105, 39.99, -104.99, 40]" \
     | mercantile tiles 14 \
-    | mercantile shapes \
-    | fio collect \
+    | mercantile shapes --collect \
     | geojsonio
