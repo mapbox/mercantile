@@ -1,6 +1,16 @@
 Changes
 =======
 
+1.0.1 (2018-02-15)
+------------------
+
+- Corrected an error in the ``bbox`` parameter description in the
+  ``bounding_tile`` docstring (#73).
+- Corrected an error in the geojson.io example in the CLI docs: the proper
+  usage is ``mercantile shapes --collect`` (#71, #72).
+- Add missing ``--version`` option to mercantile command.
+- Python 3.6 has been added to the Travis build matrix.
+
 1.0.0 (2017-12-01)
 ------------------
 

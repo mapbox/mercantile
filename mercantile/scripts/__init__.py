@@ -57,6 +57,7 @@ def iter_lines(lines):
 @click.group(help="Command line interface for the Mercantile Python package.")
 @click.option('--verbose', '-v', count=True, help="Increase verbosity.")
 @click.option('--quiet', '-q', count=True, help="Decrease verbosity.")
+@click.version_option(version=mercantile.__version__, message='%(version)s')
 @click.pass_context
 def cli(ctx, verbose, quiet):
     verbosity = verbose - quiet
