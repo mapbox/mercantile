@@ -1,6 +1,8 @@
-from setuptools import setup, find_packages
 import os
 import sys
+
+from setuptools import setup, find_packages
+
 
 open_kwds = {}
 if sys.version_info > (3,):
@@ -10,7 +12,7 @@ with open('README.rst', **open_kwds) as f:
     readme = f.read()
 
 setup(name='mercantile',
-      version='1.0.0',
+      version='1.0.1',
       description="Web mercator XYZ tile utilities",
       long_description=readme,
       classifiers=[
