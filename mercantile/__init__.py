@@ -65,7 +65,7 @@ def ul(*tile):
 
     Parameters
     ----------
-    tile : Tile or ints
+    tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
 
     Returns
@@ -96,7 +96,7 @@ def bounds(*tile):
 
     Parameters
     ----------
-    tile : Tile or ints
+    tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
 
     Returns
@@ -174,7 +174,7 @@ def xy_bounds(*tile):
 
     Parameters
     ----------
-    tile : Tile or ints
+    tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
 
     Returns
@@ -226,7 +226,7 @@ def quadkey(*tile):
 
     Parameters
     ----------
-    tile: Tile or ints
+    tile: Tile or sequence of int
 
     Returns
     -------
@@ -279,9 +279,9 @@ def tiles(west, south, east, north, zooms, truncate=False):
 
     Parameters
     ----------
-    west, south, east, north : float
+    west, south, east, north : sequence of float
         Bounding values in decimal degrees.
-    zooms : int or sequence of ints
+    zooms : int or sequence of int
         One or more zoom levels.
     truncate : bool, optional
         Whether or not to truncate inputs to web mercator limits.
@@ -328,7 +328,7 @@ def parent(*tile):
 
     Parameters
     ----------
-    tile : Tile or ints
+    tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
 
     Returns
@@ -354,7 +354,7 @@ def children(*tile):
 
     Parameters
     ----------
-    tile : Tile or ints
+    tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
 
     Returns
@@ -383,8 +383,8 @@ def bounding_tile(*bbox, **kwds):
 
     Parameters
     ----------
-    bbox : floats
-        South, west, east, north bounding values in decimal degrees.
+    bbox : sequence of float
+        west, south, east, north bounding values in decimal degrees.
 
     Returns
     -------
@@ -431,7 +431,7 @@ def feature(
 
     Parameters
     ----------
-    tile : Tile or ints
+    tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
     fid : str, optional
         A feature id.
