@@ -41,6 +41,8 @@ def test_xy():
     expected = (0.0, 0.0)
     for a, b in zip(expected, xy):
         assert round(a - b, 7) == 0
+    assert mercantile.xy(0.0, -90) == (0.0, float('-inf'))
+    assert mercantile.xy(0.0, 90) == (0.0, float('inf'))
 
 
 def test_xy_truncate():

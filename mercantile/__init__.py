@@ -140,8 +140,13 @@ def xy(lng, lat, truncate=False):
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     x = 6378137.0 * math.radians(lng)
-    y = 6378137.0 * math.log(
-        math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
+    if lat <= -90:
+        y = float('-inf')
+    elif lat >= 90:
+        y = float('inf')
+    else:
+        y = 6378137.0 * math.log(
+            math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
     return x, y
 
 
