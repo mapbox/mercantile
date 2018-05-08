@@ -4,7 +4,7 @@ from collections import namedtuple
 import math
 
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
@@ -136,6 +136,8 @@ def xy(lng, lat, truncate=False):
     Returns
     -------
     x, y : float
+        y will be inf at the North Pole (lat >= 90) and -inf at the
+        South Pole (lat <= -90).
     """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)

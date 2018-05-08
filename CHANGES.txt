@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.0.2 (2018-05-08)
+------------------
+
+- The ``xy`` function returns ``float(inf)`` and ``float(-inf)`` for y at the
+  North and South pole, respectively, instead of raising an exception (#76).
+
 1.0.1 (2018-02-15)
 ------------------
 

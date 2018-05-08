@@ -31,17 +31,30 @@ def test_bbox(args):
     assert bbox.north == bbox[3]
 
 
-def test_xy():
+def test_xy_tile():
+    """x, y for the 486-332-10 tile is correctly calculated"""
     ul = mercantile.ul(486, 332, 10)
     xy = mercantile.xy(*ul)
     expected = (-1017529.7205322663, 7044436.526761846)
     for a, b in zip(expected, xy):
         assert round(a - b, 7) == 0
+
+
+def test_xy_null_island():
+    """x, y for (0, 0) is correctly calculated"""
     xy = mercantile.xy(0.0, 0.0)
     expected = (0.0, 0.0)
     for a, b in zip(expected, xy):
         assert round(a - b, 7) == 0
+
+
+def test_xy_south_pole():
+    """Return -inf for y at South Pole"""
     assert mercantile.xy(0.0, -90) == (0.0, float('-inf'))
+
+
+def test_xy_north_pole():
+    """Return inf for y at North Pole"""
     assert mercantile.xy(0.0, 90) == (0.0, float('inf'))
 
 
