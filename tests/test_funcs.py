@@ -108,9 +108,11 @@ def test_tile_truncate():
 def test_tiles():
     bounds = (-105, 39.99, -104.99, 40)
     tiles = list(mercantile.tiles(*bounds, zooms=[14]))
+    tiles_single_zoom = list(mercantile.tiles(*bounds, zooms=14))
     expect = [mercantile.Tile(x=3413, y=6202, z=14),
               mercantile.Tile(x=3413, y=6203, z=14)]
     assert sorted(tiles) == sorted(expect)
+    assert sorted(tiles_single_zoom) == sorted(expect)
 
 
 def test_tiles_truncate():
