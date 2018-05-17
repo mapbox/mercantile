@@ -5,7 +5,7 @@ from collections import Sequence
 import math
 
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
