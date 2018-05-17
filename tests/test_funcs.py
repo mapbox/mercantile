@@ -113,6 +113,14 @@ def test_tiles():
     assert sorted(tiles) == sorted(expect)
 
 
+def test_tiles_single_zoom():
+    bounds = (-105, 39.99, -104.99, 40)
+    tiles = list(mercantile.tiles(*bounds, zooms=14))
+    expect = [mercantile.Tile(x=3413, y=6202, z=14),
+              mercantile.Tile(x=3413, y=6203, z=14)]
+    assert sorted(tiles) == sorted(expect)
+
+
 def test_tiles_truncate():
     """Input is truncated"""
     assert list(mercantile.tiles(-181.0, 0.0, -170.0, 10.0, zooms=[2], truncate=True)) \

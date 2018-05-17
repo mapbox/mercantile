@@ -1,6 +1,7 @@
 """Web mercator XYZ tile utilities"""
 
 from collections import namedtuple
+from collections import Sequence
 import math
 
 
@@ -313,6 +314,9 @@ def tiles(west, south, east, north, zooms, truncate=False):
         s = max(-85.051129, s)
         e = min(180.0, e)
         n = min(85.051129, n)
+
+        if not isinstance(zooms, Sequence):
+            zooms = [zooms]
 
         for z in zooms:
             ll = tile(w, s, z)
