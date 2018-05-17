@@ -315,7 +315,7 @@ def tiles(west, south, east, north, zooms, truncate=False):
         e = min(180.0, e)
         n = min(85.051129, n)
 
-        if not isinstance(zooms,Sequence): zooms = [zooms]
+        if not isinstance(zooms, Sequence): zooms = [zooms]
         for z in zooms:
             ll = tile(w, s, z)
             ur = tile(e, n, z)
