@@ -29,7 +29,10 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=["click>=3.0"],
-    extras_require={"dev": ["check-manifest"], "test": ["pytest-cov", "pydocstyle"]},
+    extras_require={
+        "dev": ["check-manifest"],
+        "test": ["coveralls", "pytest-cov", "pydocstyle"],
+    },
     entry_points="""
       [console_scripts]
       mercantile=mercantile.scripts:cli
