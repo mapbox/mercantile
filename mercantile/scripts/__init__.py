@@ -11,6 +11,17 @@ import mercantile
 
 
 def configure_logging(verbosity):
+    """Configure logging level
+
+    Parameters
+    ----------
+    verbosity : int
+        The number of `-v` options from the command line.
+
+    Returns
+    -------
+    None
+    """
     log_level = max(10, 30 - 10 * verbosity)
     logging.basicConfig(stream=sys.stderr, level=log_level)
 
@@ -60,6 +71,7 @@ def iter_lines(lines):
 @click.version_option(version=mercantile.__version__, message='%(version)s')
 @click.pass_context
 def cli(ctx, verbose, quiet):
+    """Execute the main mercantile command"""
     verbosity = verbose - quiet
     configure_logging(verbosity)
     ctx.obj = {}

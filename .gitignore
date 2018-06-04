@@ -65,3 +65,6 @@ venv2/
 
 # vim
 .*.swp
+
+.DS_Store
+.pytest_cache
