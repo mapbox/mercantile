@@ -13,7 +13,7 @@ with open("README.rst", **open_kwds) as f:
 
 setup(
     name="mercantile",
-    version="1.0.2",
+    version="1.0.4",
     description="Web mercator XYZ tile utilities",
     long_description=readme,
     classifiers=[
