@@ -9,7 +9,7 @@ install:
   - "pip install -e .[test]"
 script:
   - "python -m pytest --cov mercantile --cov-report term-missing"
-  - "python -m pydocstyle"
+  - "python -m pydocstyle mercantile"
 after_success:
   - coveralls
 deploy:
