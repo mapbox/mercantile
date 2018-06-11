@@ -15,6 +15,8 @@ after_success:
   - coveralls
 deploy:
   on:
+    repo: mapbox/mercantile
+    python: 3.6
     tags: true
   provider: pypi
   distributions: "sdist bdist_wheel"
