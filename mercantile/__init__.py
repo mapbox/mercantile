@@ -363,6 +363,8 @@ def parent(*tile):
 def children(*tile):
     """Get the four children of a tile
 
+    The children are ordered: top-left, top-right, bottom-right, bottom-left.
+
     Parameters
     ----------
     tile : Tile or sequence of int
