@@ -267,6 +267,8 @@ def quadkey_to_tile(qk):
     -------
     Tile
     """
+    if len(qk) == 0:
+        return Tile(0, 0, 0)
     xtile, ytile = 0, 0
     for i, digit in enumerate(reversed(qk)):
         mask = 1 << i

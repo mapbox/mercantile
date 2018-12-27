@@ -153,6 +153,12 @@ def test_quadkey_to_tile():
     assert mercantile.quadkey_to_tile(qk) == expected
 
 
+def test_empty_quadkey_to_tile():
+    qk = ""
+    expected = mercantile.Tile(0, 0, 0)
+    assert mercantile.quadkey_to_tile(qk) == expected
+
+
 def test_quadkey_failure():
     with pytest.raises(ValueError):
         mercantile.quadkey_to_tile('lolwut')
