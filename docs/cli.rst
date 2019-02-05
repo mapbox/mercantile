@@ -241,3 +241,9 @@ If you have `geojsonio-cli <https://github.com/mapbox/geojsonio-cli>`_ installed
     | mercantile tiles 14 \
     | mercantile shapes --collect \
     | geojsonio
+
+When supplying GeoJSON as input, you may need to first compact with the help of ``jq``
+
+.. code-block:: console
+
+    $ cat input.geojson | jq -c . | mercantile tiles 14
