@@ -5,6 +5,7 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7"
 install:
   - "pip install -r requirements.txt"
   - "pip install -e .[test]"
@@ -16,7 +17,7 @@ after_success:
 deploy:
   on:
     repo: mapbox/mercantile
-    python: 3.6
+    python: 3.7
     tags: true
   provider: pypi
   distributions: "sdist bdist_wheel"
