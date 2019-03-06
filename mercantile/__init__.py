@@ -331,7 +331,7 @@ def tiles(west, south, east, north, zooms, truncate=False):
                     yield Tile(i, j, z)
 
 
-def parent(*tile):
+def parent(*tile, depth=1):
     """Get the parent of a tile
 
     The parent is the tile of one zoom level lower that contains the
@@ -341,45 +341,80 @@ def parent(*tile):
     ----------
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
+    depth : int, optional
+        Returns the parent *depth* levels above the tile, where the immediate parent is depth 1.
 
     Returns
     -------
     Tile
     """
+    if depth < 1 or depth != int(depth):
+        raise ValueError("depth must be a positive integer!")
     if len(tile) == 1:
         tile = tile[0]
-    xtile, ytile, zoom = tile
+    
     # Algorithm ported directly from https://github.com/mapbox/tilebelt.
-    if xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile(xtile // 2, ytile // 2, zoom - 1)
-    elif xtile % 2 == 0:
-        return Tile(xtile // 2, (ytile - 1) // 2, zoom - 1)
-    elif not xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile((xtile - 1) // 2, ytile // 2, zoom - 1)
-    else:
-        return Tile((xtile - 1) // 2, (ytile - 1) // 2, zoom - 1)
+    return_tile = tile
+    while depth > 0:
+        depth -= 1
+        xtile, ytile, zoom = return_tile
+        if xtile % 2 == 0 and ytile % 2 == 0:
+            return_tile = Tile(xtile // 2, ytile // 2, zoom - 1)
+        elif xtile % 2 == 0:
+            return_tile = Tile(xtile // 2, (ytile - 1) // 2, zoom - 1)
+        elif not xtile % 2 == 0 and ytile % 2 == 0:
+            return_tile = Tile((xtile - 1) // 2, ytile // 2, zoom - 1)
+        else:
+            return_tile = Tile((xtile - 1) // 2, (ytile - 1) // 2, zoom - 1)
+    return return_tile
 
 
-def children(*tile):
+def children(*tile, depth=1):
     """Get the four children of a tile
 
     Parameters
     ----------
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
+    depth : int, optional
+        Returns all children at *depth* levels below the input tile, in depth-first clockwise winding order.
 
     Returns
     -------
     list
     """
+    if depth < 1 or depth != int(depth):
+        raise ValueError("depth must be a positive integer!")
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
-    return [
-        Tile(xtile * 2, ytile * 2, zoom + 1),
-        Tile(xtile * 2 + 1, ytile * 2, zoom + 1),
-        Tile(xtile * 2 + 1, ytile * 2 + 1, zoom + 1),
-        Tile(xtile * 2, ytile * 2 + 1, zoom + 1)]
+    if depth == 1:
+        return [
+            Tile(xtile * 2, ytile * 2, zoom + 1),
+            Tile(xtile * 2 + 1, ytile * 2, zoom + 1),
+            Tile(xtile * 2 + 1, ytile * 2 + 1, zoom + 1),
+            Tile(xtile * 2, ytile * 2 + 1, zoom + 1)
+            ]
+    else:
+        queue = [
+            Tile(xtile * 2, ytile * 2, zoom + 1),
+            Tile(xtile * 2 + 1, ytile * 2, zoom + 1),
+            Tile(xtile * 2 + 1, ytile * 2 + 1, zoom + 1),
+            Tile(xtile * 2, ytile * 2 + 1, zoom + 1)
+            ]
+        # queue[0][2] refers to the z-value at the head of the queue
+        while queue[0][2] < tile.z+depth:
+            xtile, ytile, zoom = queue.pop(0)
+            queue += [
+                Tile(xtile * 2, ytile * 2, zoom + 1),
+                Tile(xtile * 2 + 1, ytile * 2, zoom + 1),
+                Tile(xtile * 2 + 1, ytile * 2 + 1, zoom + 1),
+                Tile(xtile * 2, ytile * 2 + 1, zoom + 1)
+            ]
+        return queue
+
+
+
 
 
 def rshift(val, n):
