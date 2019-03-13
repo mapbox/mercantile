@@ -164,7 +164,7 @@ def test_parent():
     assert parent.z == 9
 
 def test_parent_multi():
-    parent = mercantile.parent(486, 332, 10, depth=2)
+    parent = mercantile.parent(486, 332, 10, zoom=8)
     assert parent == (121, 83, 8)
     assert parent.z == 8
 
@@ -175,9 +175,17 @@ def test_children():
     assert (486, 332, 10) in children
 
 def test_children_multi():
-    children = mercantile.children(243, 166, 9, depth=2)
+    children = mercantile.children(243, 166, 9, zoom=11)
     assert len(children) == 16
     assert (972, 664, 11) in children
+
+def test_simplify():
+    children = mercantile.children(243, 166, 9, zoom=12)
+    assert len(children) == 64
+    children = children[:-3]
+    children.append(children[0])
+    simplified = mercantile.simplify(*children)
+    assert len(simplified) == 7
 
 
 def test_bounding_tile():
