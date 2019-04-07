@@ -331,7 +331,7 @@ def tiles(west, south, east, north, zooms, truncate=False):
                     yield Tile(i, j, z)
 
 
-def parent(*tile):
+def parent(*tile, zoom=None):
     """Get the parent of a tile
 
     The parent is the tile of one zoom level lower that contains the
@@ -341,32 +341,54 @@ def parent(*tile):
     ----------
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
+    zoom : int, optional
+        Returns the parent at zoom *zoom*.
+        This defaults to one lower than the tile (the immediate parent).
 
     Returns
     -------
     Tile
     """
+    # TODO CLEAN ME UP
+
     if len(tile) == 1:
         tile = tile[0]
-    xtile, ytile, zoom = tile
-    # Algorithm ported directly from https://github.com/mapbox/tilebelt.
-    if xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile(xtile // 2, ytile // 2, zoom - 1)
-    elif xtile % 2 == 0:
-        return Tile(xtile // 2, (ytile - 1) // 2, zoom - 1)
-    elif not xtile % 2 == 0 and ytile % 2 == 0:
-        return Tile((xtile - 1) // 2, ytile // 2, zoom - 1)
-    else:
-        return Tile((xtile - 1) // 2, (ytile - 1) // 2, zoom - 1)
+    if len(tile) == 2:
+        raise ValueError("Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument.")
+
+    if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
+        raise ValueError("zoom must be an integer and less than the source tile!")
+
+    x,y,z = tile
+    if x != int(x) or y != int(y) or z != int(z):
+        raise ValueError("Cannot find the parent of a fractional tile!")
+    target_zoom = z-1 if zoom is None else zoom
+    
+    # Algorithm heavily inspired by https://github.com/mapbox/tilebelt.
+    return_tile = tile
+    while return_tile[2] > target_zoom:
+        xtile, ytile, ztile = return_tile
+        if xtile % 2 == 0 and ytile % 2 == 0:
+            return_tile = Tile(xtile // 2, ytile // 2, ztile - 1)
+        elif xtile % 2 == 0:
+            return_tile = Tile(xtile // 2, (ytile - 1) // 2, ztile - 1)
+        elif not xtile % 2 == 0 and ytile % 2 == 0:
+            return_tile = Tile((xtile - 1) // 2, ytile // 2, ztile - 1)
+        else:
+            return_tile = Tile((xtile - 1) // 2, (ytile - 1) // 2, ztile - 1)
+    return return_tile
 
 
-def children(*tile):
-    """Get the four children of a tile
+def children(*tile, zoom=None):
+    """Get the children of a tile
 
     Parameters
     ----------
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
+    zoom : int, optional
+        Returns all children at zoom *zoom*, in depth-first clockwise winding order.
+        If unspecified, returns the immediate (i.e. zoom + 1) children of the tile.
 
     Returns
     -------
@@ -374,12 +396,70 @@ def children(*tile):
     """
     if len(tile) == 1:
         tile = tile[0]
-    xtile, ytile, zoom = tile
-    return [
-        Tile(xtile * 2, ytile * 2, zoom + 1),
-        Tile(xtile * 2 + 1, ytile * 2, zoom + 1),
-        Tile(xtile * 2 + 1, ytile * 2 + 1, zoom + 1),
-        Tile(xtile * 2, ytile * 2 + 1, zoom + 1)]
+    if len(tile) == 2:
+        raise ValueError("Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument.")
+    xtile, ytile, ztile = tile
+
+    if zoom is not None and (ztile > zoom or zoom != int(zoom)):
+        raise ValueError("zoom must be an integer and greater than the source tile!")
+
+    target_zoom = zoom if zoom is not None else ztile + 1
+
+    queue = [tile]
+    while queue[0][2] < target_zoom:
+        xtile, ytile, ztile = queue.pop(0)
+        queue += [
+            Tile(xtile * 2, ytile * 2, ztile + 1),
+            Tile(xtile * 2 + 1, ytile * 2, ztile + 1),
+            Tile(xtile * 2 + 1, ytile * 2 + 1, ztile + 1),
+            Tile(xtile * 2, ytile * 2 + 1, ztile + 1)
+        ]
+    return queue
+
+def simplify(*tiles):
+    """Reduces the size of the tileset as much as possible by merging leaves into parents.
+
+    Parameters
+    ----------
+    tiles : Sequence of tiles to merge.
+
+    Returns
+    -------
+    list
+    """
+    def merge(merge_set):
+        upwards_merge = {}
+        for tile in merge_set:
+            tile_parent = parent(tile)
+            if tile_parent not in upwards_merge:
+                upwards_merge[tile_parent] = set()
+            upwards_merge[tile_parent] |= {tile}
+        current_tileset = []
+        changed = False
+        for supertile, children in upwards_merge.items():
+            if len(children) == 4:
+                current_tileset += [supertile]
+                changed = True
+            else:
+                current_tileset += list(children)
+        return current_tileset, changed
+
+    root_set = set()
+    for tile in tiles:
+        x,y,z = tile
+        supers = [parent(tile, zoom=i) for i in range(z+1)]
+        for supertile in supers:
+            if supertile in root_set:
+                continue
+        root_set |= {tile}
+    is_merging = True
+    while is_merging:
+        root_set, is_merging = merge(root_set)
+    return root_set
+
+    
+
+
 
 
 def rshift(val, n):
