@@ -187,25 +187,66 @@ def test_children():
 def test_children_multi():
     children = mercantile.children(243, 166, 9, zoom=11)
     assert len(children) == 16
-    targets = [(972, 664, 11),
- (973, 664, 11),
- (973, 665, 11),
- (972, 665, 11),
- (974, 664, 11),
- (975, 664, 11),
- (975, 665, 11),
- (974, 665, 11),
- (974, 666, 11),
- (975, 666, 11),
- (975, 667, 11),
- (974, 667, 11),
- (972, 666, 11),
- (973, 666, 11),
- (973, 667, 11),
- (972, 667, 11)]
+    targets = [
+        (972, 664, 11),
+        (973, 664, 11),
+        (973, 665, 11),
+        (972, 665, 11),
+        (974, 664, 11),
+        (975, 664, 11),
+        (975, 665, 11),
+        (974, 665, 11),
+        (974, 666, 11),
+        (975, 666, 11),
+        (975, 667, 11),
+        (974, 667, 11),
+        (972, 666, 11),
+        (973, 666, 11),
+        (973, 667, 11),
+        (972, 667, 11),
+    ]
     for target in targets:
         assert target in children
 
+def test_children_parent_bad_tile_args():
+    try:
+        mercantile.children((243, 166, 9), 10)
+    except ValueError as e:
+        assert "Could not parse tile!" in str(e)
+
+    try:
+        mercantile.parent((243, 166, 9), 1)
+    except ValueError as e:
+        assert "Could not parse tile!" in str(e)
+
+def test_child_fractional_zoom():
+    try:
+        mercantile.children((243, 166, 9), zoom=10.2)
+    except ValueError as e:
+        assert "zoom must be an integer and greater than the source tile!" in str(e)
+    
+def test_child_bad_tile_zoom():
+    try:
+        mercantile.children((243, 166, 9), zoom=8)
+    except ValueError as e:
+        assert "zoom must be an integer and greater than the source tile!" in str(e)
+
+
+def test_parent_fractional_tile():
+    try:
+        mercantile.parent((243.3, 166.2, 9), zoom=1)
+    except ValueError as e:
+        assert "Cannot find the parent of a fractional tile!" in str(e)
+    try:
+        mercantile.parent((243, 166, 9), zoom=1.2)
+    except ValueError as e:
+        assert "zoom must be an integer and less than the source tile!" in str(e)
+
+def test_parent_bad_tile_zoom():
+    try:
+        mercantile.parent((243.3, 166.2, 9), zoom=10)
+    except ValueError as e:
+        assert "zoom must be an integer and less than the source tile!" in str(e)
 
 def test_simplify():
     children = mercantile.children(243, 166, 9, zoom=12)
@@ -213,15 +254,17 @@ def test_simplify():
     children = children[:-3]
     children.append(children[0])
     simplified = mercantile.simplify(*children)
-    targets = [(487, 332, 10),
-                (486, 332, 10),
-                (487, 333, 10), 
-                (973, 667, 11),
-                (973, 666, 11),
-                (972, 666, 11),
-                (1944, 1334, 12)]
+    targets = [
+        (487, 332, 10),
+        (486, 332, 10),
+        (487, 333, 10),
+        (973, 667, 11),
+        (973, 666, 11),
+        (972, 666, 11),
+        (1944, 1334, 12),
+    ]
     for target in targets:
-            assert target in simplified
+        assert target in simplified
 
 
 def test_bounding_tile():
