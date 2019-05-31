@@ -328,7 +328,7 @@ def tiles(west, south, east, north, zooms, truncate=False):
                     yield Tile(i, j, z)
 
 
-def parent(*tile, zoom=None):
+def parent(*tile, **kwargs):
     """Get the parent of a tile
 
     The parent is the tile of one zoom level lower that contains the
@@ -346,7 +346,7 @@ def parent(*tile, zoom=None):
     -------
     Tile
     """
-    # TODO CLEAN ME UP
+    zoom = kwargs.get("zoom", None)
 
     if len(tile) == 1:
         tile = tile[0]
@@ -379,7 +379,7 @@ def parent(*tile, zoom=None):
     return return_tile
 
 
-def children(*tile, zoom=None):
+def children(*tile, **kwargs):
     """Get the children of a tile
 
     Parameters
@@ -394,6 +394,8 @@ def children(*tile, zoom=None):
     -------
     list
     """
+    zoom = kwargs.get("zoom", None)
+
     if len(tile) == 1:
         tile = tile[0]
     if len(tile) == 2:
