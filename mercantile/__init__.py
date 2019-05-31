@@ -4,14 +4,13 @@ from collections import namedtuple
 from collections import Sequence
 import math
 
-
 __version__ = '1.0.4'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
     'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
-    'tile', 'tiles', 'ul', 'xy_bounds']
-
+    'tile', 'tiles', 'ul', 'xy_bounds'
+]
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 """An XYZ web mercator tile
@@ -22,7 +21,6 @@ x, y, z : int
     x and y indexes of the tile and zoom level z.
 """
 
-
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
 """A longitude and latitude pair
 
@@ -32,7 +30,6 @@ lng, lat : float
     Longitude and latitude in decimal degrees east or north.
 """
 
-
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
 """A geographic bounding box
 
@@ -41,7 +38,6 @@ Attributes
 west, south, east, north : float
     Bounding values in decimal degrees.
 """
-
 
 Bbox = namedtuple('Bbox', ['left', 'bottom', 'right', 'top'])
 """A web mercator bounding box
@@ -85,7 +81,7 @@ def ul(*tile):
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
-    n = 2.0 ** zoom
+    n = 2.0**zoom
     lon_deg = xtile / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
     lat_deg = math.degrees(lat_rad)
@@ -169,9 +165,8 @@ def lnglat(x, y, truncate=False):
     """
     R2D = 180 / math.pi
     A = 6378137.0
-    lng, lat = (
-        x * R2D / A,
-        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
+    lng, lat = (x * R2D / A,
+                ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     return LngLat(lng, lat)
@@ -216,12 +211,14 @@ def tile(lng, lat, zoom, truncate=False):
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
-    n = 2.0 ** zoom
+    n = 2.0**zoom
     xtile = int(math.floor((lng + 180.0) / 360.0 * n))
 
     try:
-        ytile = int(math.floor((1.0 - math.log(
-            math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
+        ytile = int(
+            math.floor(
+                (1.0 - math.log(math.tan(lat) +
+                                (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
     except ValueError:
         raise InvalidLatitudeError(
             "Y can not be computed for latitude {} radians".format(lat))
@@ -326,8 +323,8 @@ def tiles(west, south, east, north, zooms, truncate=False):
             llx = 0 if ll.x < 0 else ll.x
             ury = 0 if ur.y < 0 else ur.y
 
-            for i in range(llx, min(ur.x + 1, 2 ** z)):
-                for j in range(ury, min(ll.y + 1, 2 ** z)):
+            for i in range(llx, min(ur.x + 1, 2**z)):
+                for j in range(ury, min(ll.y + 1, 2**z)):
                     yield Tile(i, j, z)
 
 
@@ -354,16 +351,19 @@ def parent(*tile, zoom=None):
     if len(tile) == 1:
         tile = tile[0]
     if len(tile) == 2:
-        raise ValueError("Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument.")
+        raise ValueError(
+            "Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument."
+        )
 
     if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
-        raise ValueError("zoom must be an integer and less than the source tile!")
+        raise ValueError(
+            "zoom must be an integer and less than the source tile!")
 
-    x,y,z = tile
+    x, y, z = tile
     if x != int(x) or y != int(y) or z != int(z):
         raise ValueError("Cannot find the parent of a fractional tile!")
-    target_zoom = z-1 if zoom is None else zoom
-    
+    target_zoom = z - 1 if zoom is None else zoom
+
     # Algorithm heavily inspired by https://github.com/mapbox/tilebelt.
     return_tile = tile
     while return_tile[2] > target_zoom:
@@ -397,11 +397,14 @@ def children(*tile, zoom=None):
     if len(tile) == 1:
         tile = tile[0]
     if len(tile) == 2:
-        raise ValueError("Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument.")
+        raise ValueError(
+            "Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument."
+        )
     xtile, ytile, ztile = tile
 
     if zoom is not None and (ztile > zoom or zoom != int(zoom)):
-        raise ValueError("zoom must be an integer and greater than the source tile!")
+        raise ValueError(
+            "zoom must be an integer and greater than the source tile!")
 
     target_zoom = zoom if zoom is not None else ztile + 1
 
@@ -416,6 +419,7 @@ def children(*tile, zoom=None):
         ]
     return queue
 
+
 def simplify(*tiles):
     """Reduces the size of the tileset as much as possible by merging leaves into parents.
 
@@ -427,7 +431,13 @@ def simplify(*tiles):
     -------
     list
     """
+
     def merge(merge_set):
+        """Checks to see if there are 4 tiles in merge_set which can be merged.
+        If there are, this merges them.
+        This returns a list of tiles, as well as a boolean indicating if any were merged.
+        By repeatedly applying merge, a tileset can be simplified.
+        """
         upwards_merge = {}
         for tile in merge_set:
             tile_parent = parent(tile)
@@ -444,22 +454,22 @@ def simplify(*tiles):
                 current_tileset += list(children)
         return current_tileset, changed
 
+    # Check to see if a tile and its parent both already exist.
+    # If so, discard the child (it's covered in the parent)
     root_set = set()
     for tile in tiles:
-        x,y,z = tile
-        supers = [parent(tile, zoom=i) for i in range(z+1)]
+        x, y, z = tile
+        supers = [parent(tile, zoom=i) for i in range(z + 1)]
         for supertile in supers:
             if supertile in root_set:
                 continue
         root_set |= {tile}
+
+    # Repeatedly run merge until no further simplification is possible.
     is_merging = True
     while is_merging:
         root_set, is_merging = merge(root_set)
     return root_set
-
-    
-
-
 
 
 def rshift(val, n):
@@ -509,15 +519,18 @@ def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
         mask = 1 << (32 - (z + 1))
-        if ((bbox[0] & mask) != (bbox[2] & mask) or
-                (bbox[1] & mask) != (bbox[3] & mask)):
+        if ((bbox[0] & mask) != (bbox[2] & mask) or (bbox[1] & mask) !=
+            (bbox[3] & mask)):
             return z
     return MAX_ZOOM
 
 
-def feature(
-        tile, fid=None, props=None, projected='geographic', buffer=None,
-        precision=None):
+def feature(tile,
+            fid=None,
+            props=None,
+            projected='geographic',
+            buffer=None,
+            precision=None):
     """Get the GeoJSON feature corresponding to a tile
 
     Parameters
@@ -551,26 +564,30 @@ def feature(
         east += buffer
         north += buffer
     if precision and precision >= 0:
-        west, south, east, north = (
-            round(v, precision) for v in (west, south, east, north))
+        west, south, east, north = (round(v, precision)
+                                    for v in (west, south, east, north))
     bbox = [
-        min(west, east), min(south, north),
-        max(west, east), max(south, north)]
+        min(west, east),
+        min(south, north),
+        max(west, east),
+        max(south, north)
+    ]
     geom = {
-        'type': 'Polygon',
-        'coordinates': [[
-            [west, south],
-            [west, north],
-            [east, north],
-            [east, south],
-            [west, south]]]}
+        'type':
+        'Polygon',
+        'coordinates': [[[west, south], [west, north], [east, north],
+                         [east, south], [west, south]]]
+    }
     xyz = str(tile)
     feat = {
         'type': 'Feature',
         'bbox': bbox,
         'id': xyz,
         'geometry': geom,
-        'properties': {'title': 'XYZ tile %s' % xyz}}
+        'properties': {
+            'title': 'XYZ tile %s' % xyz
+        }
+    }
     if props:
         feat['properties'].update(props)
     if fid:
