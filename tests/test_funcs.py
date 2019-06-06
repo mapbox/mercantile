@@ -208,45 +208,48 @@ def test_children_multi():
     for target in targets:
         assert target in children
 
-def test_children_parent_bad_tile_args():
-    try:
-        mercantile.children((243, 166, 9), 10)
-    except ValueError as e:
-        assert "Could not parse tile!" in str(e)
 
-    try:
+def test_children_bad_tile_args():
+    with pytest.raises(ValueError) as e:
+        mercantile.children((243, 166, 9), 10)
+    assert "Could not parse tile!" in str(e)
+
+
+def test_parent_bad_tile_args():
+    with pytest.raises(ValueError) as e:
         mercantile.parent((243, 166, 9), 1)
-    except ValueError as e:
-        assert "Could not parse tile!" in str(e)
+    assert "Could not parse tile!" in str(e)
+
 
 def test_child_fractional_zoom():
-    try:
+    with pytest.raises(ValueError) as e:
         mercantile.children((243, 166, 9), zoom=10.2)
-    except ValueError as e:
-        assert "zoom must be an integer and greater than the source tile!" in str(e)
+    assert "zoom must be an integer and greater than the source tile!" in str(e)
     
+
 def test_child_bad_tile_zoom():
-    try:
+    with pytest.raises(ValueError) as e:
         mercantile.children((243, 166, 9), zoom=8)
-    except ValueError as e:
-        assert "zoom must be an integer and greater than the source tile!" in str(e)
+    assert "zoom must be an integer and greater than the source tile!" in str(e)
 
 
 def test_parent_fractional_tile():
-    try:
+    with pytest.raises(ValueError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=1)
-    except ValueError as e:
-        assert "Cannot find the parent of a fractional tile!" in str(e)
-    try:
+    assert "Cannot find the parent of a fractional tile!" in str(e)
+
+
+def test_parent_fractional_zoom():
+    with pytest.raises(ValueError) as e:
         mercantile.parent((243, 166, 9), zoom=1.2)
-    except ValueError as e:
-        assert "zoom must be an integer and less than the source tile!" in str(e)
+    assert "zoom must be an integer and less than the source tile!" in str(e)
+
 
 def test_parent_bad_tile_zoom():
-    try:
+    with pytest.raises(ValueError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=10)
-    except ValueError as e:
-        assert "zoom must be an integer and less than the source tile!" in str(e)
+    assert "zoom must be an integer and less than the source tile!" in str(e)
+
 
 def test_simplify():
     children = mercantile.children(243, 166, 9, zoom=12)
