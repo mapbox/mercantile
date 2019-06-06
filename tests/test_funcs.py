@@ -3,10 +3,9 @@ import pytest
 import mercantile
 
 
-@pytest.mark.parametrize('args', [
-    (486, 332, 10),
-    [(486, 332, 10)],
-    [mercantile.Tile(486, 332, 10)]])
+@pytest.mark.parametrize(
+    "args", [(486, 332, 10), [(486, 332, 10)], [mercantile.Tile(486, 332, 10)]]
+)
 def test_ul(args):
     expected = (-9.140625, 53.33087298301705)
     lnglat = mercantile.ul(*args)
@@ -16,10 +15,9 @@ def test_ul(args):
     assert lnglat[1] == lnglat.lat
 
 
-@pytest.mark.parametrize('args', [
-    (486, 332, 10),
-    [(486, 332, 10)],
-    [mercantile.Tile(486, 332, 10)]])
+@pytest.mark.parametrize(
+    "args", [(486, 332, 10), [(486, 332, 10)], [mercantile.Tile(486, 332, 10)]]
+)
 def test_bbox(args):
     expected = (-9.140625, 53.12040528310657, -8.7890625, 53.33087298301705)
     bbox = mercantile.bounds(*args)
@@ -50,12 +48,12 @@ def test_xy_null_island():
 
 def test_xy_south_pole():
     """Return -inf for y at South Pole"""
-    assert mercantile.xy(0.0, -90) == (0.0, float('-inf'))
+    assert mercantile.xy(0.0, -90) == (0.0, float("-inf"))
 
 
 def test_xy_north_pole():
     """Return inf for y at North Pole"""
-    assert mercantile.xy(0.0, 90) == (0.0, float('inf'))
+    assert mercantile.xy(0.0, 90) == (0.0, float("inf"))
 
 
 def test_xy_truncate():
@@ -80,13 +78,16 @@ def test_lnglat_xy_roundtrip():
         assert round(a - b, 4) == 0
 
 
-@pytest.mark.parametrize('args', [
-    (486, 332, 10),
-    [(486, 332, 10)],
-    [mercantile.Tile(486, 332, 10)]])
+@pytest.mark.parametrize(
+    "args", [(486, 332, 10), [(486, 332, 10)], [mercantile.Tile(486, 332, 10)]]
+)
 def test_xy_bounds(args):
-    expected = (-1017529.7205322663, 7005300.768279833,
-                -978393.962050256, 7044436.526761846)
+    expected = (
+        -1017529.7205322663,
+        7005300.768279833,
+        -978393.962050256,
+        7044436.526761846,
+    )
     bounds = mercantile.xy_bounds(*args)
 
     for a, b in zip(expected, bounds):
@@ -102,29 +103,36 @@ def test_tile():
 
 def test_tile_truncate():
     """Input is truncated"""
-    assert mercantile.tile(-181.0, 0.0, 9, truncate=True) == mercantile.tile(-180.0, 0.0, 9)
+    assert mercantile.tile(-181.0, 0.0, 9, truncate=True) == mercantile.tile(
+        -180.0, 0.0, 9
+    )
 
 
 def test_tiles():
     bounds = (-105, 39.99, -104.99, 40)
     tiles = list(mercantile.tiles(*bounds, zooms=[14]))
-    expect = [mercantile.Tile(x=3413, y=6202, z=14),
-              mercantile.Tile(x=3413, y=6203, z=14)]
+    expect = [
+        mercantile.Tile(x=3413, y=6202, z=14),
+        mercantile.Tile(x=3413, y=6203, z=14),
+    ]
     assert sorted(tiles) == sorted(expect)
 
 
 def test_tiles_single_zoom():
     bounds = (-105, 39.99, -104.99, 40)
     tiles = list(mercantile.tiles(*bounds, zooms=14))
-    expect = [mercantile.Tile(x=3413, y=6202, z=14),
-              mercantile.Tile(x=3413, y=6203, z=14)]
+    expect = [
+        mercantile.Tile(x=3413, y=6202, z=14),
+        mercantile.Tile(x=3413, y=6203, z=14),
+    ]
     assert sorted(tiles) == sorted(expect)
 
 
 def test_tiles_truncate():
     """Input is truncated"""
-    assert list(mercantile.tiles(-181.0, 0.0, -170.0, 10.0, zooms=[2], truncate=True)) \
-        == list(mercantile.tiles(-180.0, 0.0, -170.0, 10.0, zooms=[2]))
+    assert list(
+        mercantile.tiles(-181.0, 0.0, -170.0, 10.0, zooms=[2], truncate=True)
+    ) == list(mercantile.tiles(-180.0, 0.0, -170.0, 10.0, zooms=[2]))
 
 
 def test_tiles_antimerdian_crossing_bbox():
@@ -155,7 +163,7 @@ def test_quadkey_to_tile():
 
 def test_quadkey_failure():
     with pytest.raises(ValueError):
-        mercantile.quadkey_to_tile('lolwut')
+        mercantile.quadkey_to_tile("lolwut")
 
 
 def test_parent():
@@ -164,10 +172,102 @@ def test_parent():
     assert parent.z == 9
 
 
+def test_parent_multi():
+    parent = mercantile.parent(486, 332, 10, zoom=8)
+    assert parent == (121, 83, 8)
+    assert parent.z == 8
+
+
 def test_children():
     children = mercantile.children(243, 166, 9)
     assert len(children) == 4
     assert (486, 332, 10) in children
+
+
+def test_children_multi():
+    children = mercantile.children(243, 166, 9, zoom=11)
+    assert len(children) == 16
+    targets = [
+        (972, 664, 11),
+        (973, 664, 11),
+        (973, 665, 11),
+        (972, 665, 11),
+        (974, 664, 11),
+        (975, 664, 11),
+        (975, 665, 11),
+        (974, 665, 11),
+        (974, 666, 11),
+        (975, 666, 11),
+        (975, 667, 11),
+        (974, 667, 11),
+        (972, 666, 11),
+        (973, 666, 11),
+        (973, 667, 11),
+        (972, 667, 11),
+    ]
+    for target in targets:
+        assert target in children
+
+
+def test_children_bad_tile_args():
+    with pytest.raises(ValueError) as e:
+        mercantile.children((243, 166, 9), 10)
+    assert "Could not parse tile!" in str(e)
+
+
+def test_parent_bad_tile_args():
+    with pytest.raises(ValueError) as e:
+        mercantile.parent((243, 166, 9), 1)
+    assert "Could not parse tile!" in str(e)
+
+
+def test_child_fractional_zoom():
+    with pytest.raises(ValueError) as e:
+        mercantile.children((243, 166, 9), zoom=10.2)
+    assert "zoom must be an integer and greater than the source tile!" in str(e)
+    
+
+def test_child_bad_tile_zoom():
+    with pytest.raises(ValueError) as e:
+        mercantile.children((243, 166, 9), zoom=8)
+    assert "zoom must be an integer and greater than the source tile!" in str(e)
+
+
+def test_parent_fractional_tile():
+    with pytest.raises(ValueError) as e:
+        mercantile.parent((243.3, 166.2, 9), zoom=1)
+    assert "Cannot find the parent of a fractional tile!" in str(e)
+
+
+def test_parent_fractional_zoom():
+    with pytest.raises(ValueError) as e:
+        mercantile.parent((243, 166, 9), zoom=1.2)
+    assert "zoom must be an integer and less than the source tile!" in str(e)
+
+
+def test_parent_bad_tile_zoom():
+    with pytest.raises(ValueError) as e:
+        mercantile.parent((243.3, 166.2, 9), zoom=10)
+    assert "zoom must be an integer and less than the source tile!" in str(e)
+
+
+def test_simplify():
+    children = mercantile.children(243, 166, 9, zoom=12)
+    assert len(children) == 64
+    children = children[:-3]
+    children.append(children[0])
+    simplified = mercantile.simplify(*children)
+    targets = [
+        (487, 332, 10),
+        (486, 332, 10),
+        (487, 333, 10),
+        (973, 667, 11),
+        (973, 666, 11),
+        (972, 666, 11),
+        (1944, 1334, 12),
+    ]
+    for target in targets:
+        assert target in simplified
 
 
 def test_bounding_tile():
@@ -178,10 +278,8 @@ def test_bounding_tile():
 
 def test_overflow_bounding_tile():
     assert mercantile.bounding_tile(
-        -179.99999999999997,
-        -90.00000000000003,
-        180.00000000000014,
-        -63.27066048950458) == (0, 0, 0)
+        -179.99999999999997, -90.00000000000003, 180.00000000000014, -63.27066048950458
+    ) == (0, 0, 0)
 
 
 def test_bounding_tile_pt():
@@ -191,8 +289,9 @@ def test_bounding_tile_pt():
 
 def test_bounding_tile_truncate():
     """Input is truncated"""
-    assert mercantile.bounding_tile(-181.0, 1.0, truncate=True) \
-        == mercantile.bounding_tile(-180.0, 1.0)
+    assert mercantile.bounding_tile(
+        -181.0, 1.0, truncate=True
+    ) == mercantile.bounding_tile(-180.0, 1.0)
 
 
 def test_truncate_lng_under():
