@@ -4,12 +4,14 @@ from collections import namedtuple
 from collections import Sequence
 import math
 
+
 __version__ = '1.0.4'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
     'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
     'tile', 'tiles', 'ul', 'xy_bounds']
+
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 """An XYZ web mercator tile
@@ -20,6 +22,7 @@ x, y, z : int
     x and y indexes of the tile and zoom level z.
 """
 
+
 LngLat = namedtuple('LngLat', ['lng', 'lat'])
 """A longitude and latitude pair
 
@@ -29,6 +32,7 @@ lng, lat : float
     Longitude and latitude in decimal degrees east or north.
 """
 
+
 LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
 """A geographic bounding box
 
@@ -37,6 +41,7 @@ Attributes
 west, south, east, north : float
     Bounding values in decimal degrees.
 """
+
 
 Bbox = namedtuple('Bbox', ['left', 'bottom', 'right', 'top'])
 """A web mercator bounding box
@@ -215,8 +220,8 @@ def tile(lng, lat, zoom, truncate=False):
     xtile = int(math.floor((lng + 180.0) / 360.0 * n))
 
     try:
-        ytile = int(math.floor((1.0 - math.log(math.tan(lat) +
-                                (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
+        ytile = int(math.floor((1.0 - math.log(
+            math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
     except ValueError:
         raise InvalidLatitudeError(
             "Y can not be computed for latitude {} radians".format(lat))
@@ -519,14 +524,15 @@ def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
         mask = 1 << (32 - (z + 1))
-        if ((bbox[0] & mask) != (bbox[2] & mask) or 
+        if ((bbox[0] & mask) != (bbox[2] & mask) or
                 (bbox[1] & mask) != (bbox[3] & mask)):
             return z
     return MAX_ZOOM
 
 
-def feature(tile, fid=None, props=None, projected='geographic', buffer=None,
-            precision=None):
+def feature(
+        tile, fid=None, props=None, projected='geographic', buffer=None,
+        precision=None):
     """Get the GeoJSON feature corresponding to a tile
 
     Parameters
@@ -564,11 +570,9 @@ def feature(tile, fid=None, props=None, projected='geographic', buffer=None,
             round(v, precision) for v in (west, south, east, north))
     bbox = [
         min(west, east), min(south, north),
-        max(west, east), max(south, north)
-    ]
+        max(west, east), max(south, north)]
     geom = {
-        'type':
-        'Polygon',
+        'type': 'Polygon',
         'coordinates': [[
             [west, south], 
             [west, north], 
@@ -581,8 +585,7 @@ def feature(tile, fid=None, props=None, projected='geographic', buffer=None,
         'bbox': bbox,
         'id': xyz,
         'geometry': geom,
-        'properties': {'title': 'XYZ tile %s' % xyz}
-    }
+        'properties': {'title': 'XYZ tile %s' % xyz}}
     if props:
         feat['properties'].update(props)
     if fid:
