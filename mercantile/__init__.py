@@ -9,8 +9,7 @@ __version__ = '1.0.4'
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
     'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
-    'tile', 'tiles', 'ul', 'xy_bounds'
-]
+    'tile', 'tiles', 'ul', 'xy_bounds']
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
 """An XYZ web mercator tile
@@ -81,7 +80,7 @@ def ul(*tile):
     if len(tile) == 1:
         tile = tile[0]
     xtile, ytile, zoom = tile
-    n = 2.0**zoom
+    n = 2.0 ** zoom
     lon_deg = xtile / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
     lat_deg = math.degrees(lat_rad)
@@ -165,8 +164,9 @@ def lnglat(x, y, truncate=False):
     """
     R2D = 180 / math.pi
     A = 6378137.0
-    lng, lat = (x * R2D / A,
-                ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
+    lng, lat = (
+        x * R2D / A,
+        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     return LngLat(lng, lat)
@@ -211,13 +211,11 @@ def tile(lng, lat, zoom, truncate=False):
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     lat = math.radians(lat)
-    n = 2.0**zoom
+    n = 2.0 ** zoom
     xtile = int(math.floor((lng + 180.0) / 360.0 * n))
 
     try:
-        ytile = int(
-            math.floor(
-                (1.0 - math.log(math.tan(lat) +
+        ytile = int(math.floor((1.0 - math.log(math.tan(lat) +
                                 (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
     except ValueError:
         raise InvalidLatitudeError(
@@ -323,8 +321,8 @@ def tiles(west, south, east, north, zooms, truncate=False):
             llx = 0 if ll.x < 0 else ll.x
             ury = 0 if ur.y < 0 else ur.y
 
-            for i in range(llx, min(ur.x + 1, 2**z)):
-                for j in range(ury, min(ll.y + 1, 2**z)):
+            for i in range(llx, min(ur.x + 1, 2 ** z)):
+                for j in range(ury, min(ll.y + 1, 2 ** z)):
                     yield Tile(i, j, z)
 
 
@@ -340,7 +338,7 @@ def parent(*tile, **kwargs):
         May be be either an instance of Tile or 3 ints, X, Y, Z.
     zoom : int, optional
         Returns the parent at zoom *zoom*.
-        This defaults to one lower than the tile (the immediate parent).
+        This defaults to one lower than the tile (the immediate parent). 
 
     Returns
     -------
@@ -521,17 +519,13 @@ def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
         mask = 1 << (32 - (z + 1))
-        if ((bbox[0] & mask) != (bbox[2] & mask) or (bbox[1] & mask) !=
-            (bbox[3] & mask)):
+        if ((bbox[0] & mask) != (bbox[2] & mask) or 
+                (bbox[1] & mask) != (bbox[3] & mask)):
             return z
     return MAX_ZOOM
 
 
-def feature(tile,
-            fid=None,
-            props=None,
-            projected='geographic',
-            buffer=None,
+def feature(tile, fid=None, props=None, projected='geographic', buffer=None,
             precision=None):
     """Get the GeoJSON feature corresponding to a tile
 
@@ -566,29 +560,28 @@ def feature(tile,
         east += buffer
         north += buffer
     if precision and precision >= 0:
-        west, south, east, north = (round(v, precision)
-                                    for v in (west, south, east, north))
+        west, south, east, north = (
+            round(v, precision) for v in (west, south, east, north))
     bbox = [
-        min(west, east),
-        min(south, north),
-        max(west, east),
-        max(south, north)
+        min(west, east), min(south, north),
+        max(west, east), max(south, north)
     ]
     geom = {
         'type':
         'Polygon',
-        'coordinates': [[[west, south], [west, north], [east, north],
-                         [east, south], [west, south]]]
-    }
+        'coordinates': [[
+            [west, south], 
+            [west, north], 
+            [east, north],
+            [east, south],
+            [west, south]]]}
     xyz = str(tile)
     feat = {
         'type': 'Feature',
         'bbox': bbox,
         'id': xyz,
         'geometry': geom,
-        'properties': {
-            'title': 'XYZ tile %s' % xyz
-        }
+        'properties': {'title': 'XYZ tile %s' % xyz}
     }
     if props:
         feat['properties'].update(props)
