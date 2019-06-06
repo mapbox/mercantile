@@ -408,16 +408,16 @@ def children(*tile, **kwargs):
 
     target_zoom = zoom if zoom is not None else ztile + 1
 
-    queue = [tile]
-    while queue[0][2] < target_zoom:
-        xtile, ytile, ztile = queue.pop(0)
-        queue += [
+    tiles = [tile]
+    while tiles[0][2] < target_zoom:
+        xtile, ytile, ztile = tiles.pop(0)
+        tiles += [
             Tile(xtile * 2, ytile * 2, ztile + 1),
             Tile(xtile * 2 + 1, ytile * 2, ztile + 1),
             Tile(xtile * 2 + 1, ytile * 2 + 1, ztile + 1),
             Tile(xtile * 2, ytile * 2 + 1, ztile + 1)
         ]
-    return queue
+    return tiles
 
 
 def simplify(*tiles):
