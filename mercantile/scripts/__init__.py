@@ -471,6 +471,6 @@ def quadkey(ctx, input):
                 tile = mercantile.quadkey_to_tile(line)
                 output = json.dumps(tile)
             click.echo(output)
-    except ValueError:
+    except mercantile.QuadKeyError:
         raise click.BadParameter(
             "{0}".format(input), param=input, param_hint='input')

@@ -5,7 +5,7 @@ from collections import Sequence
 import math
 
 
-__version__ = '1.0.4'
+__version__ = '1.1dev'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
@@ -59,6 +59,22 @@ class MercantileError(Exception):
 
 class InvalidLatitudeError(MercantileError):
     """Raised when math errors occur beyond ~85 degrees N or S"""
+
+
+class InvalidTileError(MercantileError):
+    """Raised when tiling parameters are invalid"""
+
+
+class InvalidZoomError(MercantileError):
+    """Raised when a zoom level is invalid"""
+
+
+class ParentTileError(MercantileError):
+    """Raised when a parent tile cannot be determined"""
+
+
+class QuadKeyError(MercantileError):
+    """Raised when errors occur in computing or parsing quad keys"""
 
 
 def ul(*tile):
@@ -278,7 +294,7 @@ def quadkey_to_tile(qk):
             xtile = xtile | mask
             ytile = ytile | mask
         elif digit != '0':
-            raise ValueError("Unexpected quadkey digit: %r", digit)
+            raise QuadKeyError("Unexpected quadkey digit: %r", digit)
     return Tile(xtile, ytile, i + 1)
 
 
@@ -342,29 +358,44 @@ def parent(*tile, **kwargs):
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
     zoom : int, optional
-        Returns the parent at zoom *zoom*.
-        This defaults to one lower than the tile (the immediate parent). 
+        Determines the *zoom* level of the returned parent tile.
+        This defaults to one lower than the tile (the immediate parent).
 
     Returns
     -------
     Tile
+
+    Examples
+    --------
+
+    >>> parent(Tile(0, 0, 2))
+    Tile(x=0, y=0, z=1)
+
+    >>> parent(Tile(0, 0, 2), zoom=0)
+    Tile(x=0, y=0, z=0)
+
     """
+    # zoom is a keyword-only argument.
     zoom = kwargs.get("zoom", None)
 
-    if len(tile) == 1:
+    # tile must be a Tile or an x, y, z sequence.
+    if len(tile) == 3:
+        pass
+
+    elif len(tile) == 1:
         tile = tile[0]
-    if len(tile) == 2:
-        raise ValueError(
-            "Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument."
-        )
+
+    else:
+        raise InvalidTileError("tile argument may have 1 or 3 values. Note that zoom is a keyword-only argument")
 
     if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
-        raise ValueError(
-            "zoom must be an integer and less than the source tile!")
+        raise InvalidZoomError(
+            "zoom must be an integer and less than that of the input tile")
 
     x, y, z = tile
     if x != int(x) or y != int(y) or z != int(z):
-        raise ValueError("Cannot find the parent of a fractional tile!")
+        raise ParentTileError("the parent of a non-integer tile is undefined")
+
     target_zoom = z - 1 if zoom is None else zoom
 
     # Algorithm heavily inspired by https://github.com/mapbox/tilebelt.
@@ -397,19 +428,24 @@ def children(*tile, **kwargs):
     -------
     list
     """
+    # zoom is a keyword-only argument.
     zoom = kwargs.get("zoom", None)
 
-    if len(tile) == 1:
+    # tile must be a Tile or an x, y, z sequence.
+    if len(tile) == 3:
+        pass
+
+    elif len(tile) == 1:
         tile = tile[0]
-    if len(tile) == 2:
-        raise ValueError(
-            "Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument."
-        )
+
+    else:
+        raise InvalidTileError("tile argument may have 1 or 3 values. Note that zoom is a keyword-only argument")
+
     xtile, ytile, ztile = tile
 
     if zoom is not None and (ztile > zoom or zoom != int(zoom)):
-        raise ValueError(
-            "zoom must be an integer and greater than the source tile!")
+        raise InvalidZoomError(
+            "zoom must be an integer and greater than that of the input tile")
 
     target_zoom = zoom if zoom is not None else ztile + 1
 
@@ -574,8 +610,8 @@ def feature(
     geom = {
         'type': 'Polygon',
         'coordinates': [[
-            [west, south], 
-            [west, north], 
+            [west, south],
+            [west, north],
             [east, north],
             [east, south],
             [west, south]]]}

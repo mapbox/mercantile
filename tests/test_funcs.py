@@ -162,8 +162,15 @@ def test_quadkey_to_tile():
 
 
 def test_quadkey_failure():
-    with pytest.raises(ValueError):
+    with pytest.raises(mercantile.QuadKeyError):
         mercantile.quadkey_to_tile("lolwut")
+
+
+@pytest.mark.parametrize('args', [(486, 332, 10, 9), ((486, 332, 10), 9)])
+def test_parent_invalid_args(args):
+    """tile arg must have length 1 or 3"""
+    with pytest.raises(mercantile.InvalidTileError):
+        parent = mercantile.parent(*args)
 
 
 def test_parent():
@@ -210,45 +217,43 @@ def test_children_multi():
 
 
 def test_children_bad_tile_args():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(mercantile.InvalidTileError):
         mercantile.children((243, 166, 9), 10)
-    assert "Could not parse tile!" in str(e)
 
 
-def test_parent_bad_tile_args():
-    with pytest.raises(ValueError) as e:
-        mercantile.parent((243, 166, 9), 1)
-    assert "Could not parse tile!" in str(e)
+def test_children_bad_tile_argsi_2():
+    with pytest.raises(mercantile.InvalidTileError):
+        mercantile.children(243, 166, 9, 10)
 
 
 def test_child_fractional_zoom():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.children((243, 166, 9), zoom=10.2)
-    assert "zoom must be an integer and greater than the source tile!" in str(e)
-    
+    assert "zoom must be an integer and greater than" in str(e)
+
 
 def test_child_bad_tile_zoom():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.children((243, 166, 9), zoom=8)
-    assert "zoom must be an integer and greater than the source tile!" in str(e)
+    assert "zoom must be an integer and greater than" in str(e)
 
 
 def test_parent_fractional_tile():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(mercantile.ParentTileError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=1)
-    assert "Cannot find the parent of a fractional tile!" in str(e)
+    assert "the parent of a non-integer tile is undefined" in str(e)
 
 
 def test_parent_fractional_zoom():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.parent((243, 166, 9), zoom=1.2)
-    assert "zoom must be an integer and less than the source tile!" in str(e)
+    assert "zoom must be an integer and less than" in str(e)
 
 
 def test_parent_bad_tile_zoom():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=10)
-    assert "zoom must be an integer and less than the source tile!" in str(e)
+    assert "zoom must be an integer and less than" in str(e)
 
 
 def test_simplify():
