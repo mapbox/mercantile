@@ -8,8 +8,9 @@ Changes
   ``parent()``, allowing the user to specify the zoom level for each (#94).
 - A new ``simplify()`` function merges child to parent tiles, upwards,
   producing the shortest sequence of tiles that cover the same space (#94).
-- New InvalidTileError and InvalidZoomError exceptions have been added and are
-  used exclusively instead of the builtin ValueError.
+- The mercantile module now raises only exceptions deriving from
+  MercantileError. Such errors indicate improper usage of the mercantile
+  module. The occurance of a builtin exception indicates a bug in mercantile.
 
 1.0.4 (2018-06-04)
 ------------------
