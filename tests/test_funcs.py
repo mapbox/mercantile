@@ -169,8 +169,8 @@ def test_quadkey_failure():
 @pytest.mark.parametrize('args', [(486, 332, 10, 9), ((486, 332, 10), 9)])
 def test_parent_invalid_args(args):
     """tile arg must have length 1 or 3"""
-    with pytest.raises(mercantile.InvalidTileError):
-        parent = mercantile.parent(*args)
+    with pytest.raises(mercantile.TileArgParsingError):
+        mercantile.parent(*args)
 
 
 def test_parent():
@@ -216,16 +216,6 @@ def test_children_multi():
         assert target in children
 
 
-def test_children_bad_tile_args():
-    with pytest.raises(mercantile.InvalidTileError):
-        mercantile.children((243, 166, 9), 10)
-
-
-def test_children_bad_tile_argsi_2():
-    with pytest.raises(mercantile.InvalidTileError):
-        mercantile.children(243, 166, 9, 10)
-
-
 def test_child_fractional_zoom():
     with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.children((243, 166, 9), zoom=10.2)
@@ -261,7 +251,7 @@ def test_simplify():
     assert len(children) == 64
     children = children[:-3]
     children.append(children[0])
-    simplified = mercantile.simplify(*children)
+    simplified = mercantile.simplify(children)
     targets = [
         (487, 332, 10),
         (486, 332, 10),
@@ -313,3 +303,22 @@ def test_truncate_lat_under():
 
 def test_truncate_lat_over():
     assert mercantile.truncate_lnglat(0, 91) == (0, 90)
+
+
+@pytest.mark.parametrize(
+    "args, tile", [
+        ((0, 0, 0), (0, 0, 0)),
+        (mercantile.Tile(0, 0, 0), (0, 0, 0)),
+        (((0, 0, 0)), (0, 0, 0)),
+    ]
+)
+def test_arg_parse(args, tile):
+    """Helper function parse tile args properly"""
+    assert mercantile._parse_tile_arg(*args) == mercantile.Tile(*tile)
+
+
+@pytest.mark.parametrize("args", [(0, 0), (0, 0, 0, 0)])
+def test_arg_parse_error(args):
+    """Helper function raises exception as expected"""
+    with pytest.raises(mercantile.TileArgParsingError):
+        mercantile._parse_tile_arg(*args)
