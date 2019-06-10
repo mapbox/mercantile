@@ -385,6 +385,8 @@ def parent(*tile, **kwargs):
 def children(*tile, **kwargs):
     """Get the children of a tile
 
+    The children are ordered: top-left, top-right, bottom-right, bottom-left.
+
     Parameters
     ----------
     tile : Tile or sequence of int

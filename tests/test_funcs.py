@@ -179,9 +179,32 @@ def test_parent_multi():
 
 
 def test_children():
-    children = mercantile.children(243, 166, 9)
+    x, y, z = 243, 166, 9
+    children = mercantile.children(x, y, z)
     assert len(children) == 4
-    assert (486, 332, 10) in children
+
+    # Four sub-tiles (children) when zooming in
+    #
+    #    -------
+    #   | a | b |
+    #    ---|---
+    #   | d | c |
+    #    -------
+    #
+    # with:
+    #
+    #   a=(2x,     2y, z + 1)    b=(2x + 1,     2y, z + 1)
+    #
+    #   d=(2x, 2y + 1, z + 1)    c=(2x + 1, 2y + 1, z + 1)
+    #
+    # See: https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Subtiles
+
+    a, b, c, d = children
+
+    assert a == mercantile.Tile(2 * x, 2 * y, z + 1)
+    assert b == mercantile.Tile(2 * x + 1, 2 * y, z + 1)
+    assert c == mercantile.Tile(2 * x + 1, 2 * y + 1, z + 1)
+    assert d == mercantile.Tile(2 * x, 2 * y + 1, z + 1)
 
 
 def test_children_multi():
