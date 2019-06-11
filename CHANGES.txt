@@ -1,6 +1,17 @@
 Changes
 =======
 
+1.1.0 (TBD)
+-----------
+
+- A zoom keyword argument has been added to both ``children()`` and
+  ``parent()``, allowing the user to specify the zoom level for each (#94).
+- A new ``simplify()`` function merges child to parent tiles, upwards,
+  producing the shortest sequence of tiles that cover the same space (#94).
+- The mercantile module now raises only exceptions deriving from
+  MercantileError. Such errors indicate improper usage of the mercantile
+  module. The occurance of a builtin exception indicates a bug in mercantile.
+
 1.0.4 (2018-06-04)
 ------------------
 

@@ -5,12 +5,12 @@ from collections import Sequence
 import math
 
 
-__version__ = '1.0.4'
+__version__ = '1.1dev'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
     'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
-    'tile', 'tiles', 'ul', 'xy_bounds']
+    'simplify', 'tile', 'tiles', 'ul', 'xy_bounds']
 
 
 Tile = namedtuple('Tile', ['x', 'y', 'z'])
@@ -61,6 +61,47 @@ class InvalidLatitudeError(MercantileError):
     """Raised when math errors occur beyond ~85 degrees N or S"""
 
 
+class InvalidZoomError(MercantileError):
+    """Raised when a zoom level is invalid"""
+
+
+class ParentTileError(MercantileError):
+    """Raised when a parent tile cannot be determined"""
+
+
+class QuadKeyError(MercantileError):
+    """Raised when errors occur in computing or parsing quad keys"""
+
+
+class TileArgParsingError(MercantileError):
+    """Raised when errors occur in parsing a function's tile arg(s)"""
+
+
+def _parse_tile_arg(*args):
+    """parse the *tile arg of module functions
+
+    Parameters
+    ----------
+    tile : Tile or sequence of int
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    Tile
+
+    Raises
+    ------
+    TileArgParsingError
+
+    """
+    if len(args) == 1:
+        args = args[0]
+    if len(args) == 3:
+        return Tile(*args)
+    else:
+        raise TileArgParsingError("the tile argument may have 1 or 3 values. Note that zoom is a keyword-only argument")
+
+
 def ul(*tile):
     """Returns the upper left longitude and latitude of a tile
 
@@ -81,9 +122,9 @@ def ul(*tile):
 
     >>> mercantile.ul(1, 1, 1)
     LngLat(lng=0.0, lat=0.0)
+
     """
-    if len(tile) == 1:
-        tile = tile[0]
+    tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
     n = 2.0 ** zoom
     lon_deg = xtile / n * 360.0 - 180.0
@@ -103,9 +144,9 @@ def bounds(*tile):
     Returns
     -------
     LngLatBBox
+
     """
-    if len(tile) == 1:
-        tile = tile[0]
+    tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
     b = ul(xtile + 1, ytile + 1, zoom)
@@ -139,6 +180,7 @@ def xy(lng, lat, truncate=False):
     x, y : float
         y will be inf at the North Pole (lat >= 90) and -inf at the
         South Pole (lat <= -90).
+
     """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
@@ -166,6 +208,7 @@ def lnglat(x, y, truncate=False):
     Returns
     -------
     LngLat
+
     """
     R2D = 180 / math.pi
     A = 6378137.0
@@ -188,9 +231,9 @@ def xy_bounds(*tile):
     Returns
     -------
     Bbox
+
     """
-    if len(tile) == 1:
-        tile = tile[0]
+    tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
     left, top = xy(*ul(xtile, ytile, zoom))
     right, bottom = xy(*ul(xtile + 1, ytile + 1, zoom))
@@ -212,6 +255,7 @@ def tile(lng, lat, zoom, truncate=False):
     Returns
     -------
     Tile
+
     """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
@@ -234,14 +278,15 @@ def quadkey(*tile):
 
     Parameters
     ----------
-    tile: Tile or sequence of int
+    tile : Tile or sequence of int
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
 
     Returns
     -------
     str
+
     """
-    if len(tile) == 1:
-        tile = tile[0]
+    tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
     qk = []
     for z in range(zoom, 0, -1):
@@ -261,11 +306,12 @@ def quadkey_to_tile(qk):
     Parameters
     ----------
     qk : str
-        The quadkey
+        A quadkey string.
 
     Returns
     -------
     Tile
+
     """
     if len(qk) == 0:
         return Tile(0, 0, 0)
@@ -280,7 +326,7 @@ def quadkey_to_tile(qk):
             xtile = xtile | mask
             ytile = ytile | mask
         elif digit != '0':
-            raise ValueError("Unexpected quadkey digit: %r", digit)
+            raise QuadKeyError("Unexpected quadkey digit: %r", digit)
     return Tile(xtile, ytile, i + 1)
 
 
@@ -299,6 +345,7 @@ def tiles(west, south, east, north, zooms, truncate=False):
     Yields
     ------
     Tile
+
     """
     if truncate:
         west, south = truncate_lnglat(west, south)
@@ -309,6 +356,7 @@ def tiles(west, south, east, north, zooms, truncate=False):
         bboxes = [bbox_west, bbox_east]
     else:
         bboxes = [(west, south, east, north)]
+
     for w, s, e, n in bboxes:
 
         # Clamp bounding values.
@@ -344,29 +392,36 @@ def parent(*tile, **kwargs):
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
     zoom : int, optional
-        Returns the parent at zoom *zoom*.
-        This defaults to one lower than the tile (the immediate parent). 
+        Determines the *zoom* level of the returned parent tile.
+        This defaults to one lower than the tile (the immediate parent).
 
     Returns
     -------
     Tile
+
+    Examples
+    --------
+
+    >>> parent(Tile(0, 0, 2))
+    Tile(x=0, y=0, z=1)
+
+    >>> parent(Tile(0, 0, 2), zoom=0)
+    Tile(x=0, y=0, z=0)
+
     """
+    tile = _parse_tile_arg(*tile)
+
+    # zoom is a keyword-only argument.
     zoom = kwargs.get("zoom", None)
 
-    if len(tile) == 1:
-        tile = tile[0]
-    if len(tile) == 2:
-        raise ValueError(
-            "Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument."
-        )
-
     if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
-        raise ValueError(
-            "zoom must be an integer and less than the source tile!")
+        raise InvalidZoomError(
+            "zoom must be an integer and less than that of the input tile")
 
     x, y, z = tile
     if x != int(x) or y != int(y) or z != int(z):
-        raise ValueError("Cannot find the parent of a fractional tile!")
+        raise ParentTileError("the parent of a non-integer tile is undefined")
+
     target_zoom = z - 1 if zoom is None else zoom
 
     # Algorithm heavily inspired by https://github.com/mapbox/tilebelt.
@@ -400,20 +455,27 @@ def children(*tile, **kwargs):
     Returns
     -------
     list
+
+    Examples
+    --------
+
+    >>> children(Tile(0, 0, 0))
+    [Tile(x=0, y=0, z=1), Tile(x=0, y=1, z=1), Tile(x=1, y=0, z=1), Tile(x=1, y=1, z=1)]
+
+    >>> children(Tile(0, 0, 0), zoom=2)
+    [Tile(x=0, y=0, z=2), Tile(x=0, y=1, z=2), Tile(x=0, y=2, z=2), Tile(x=0, y=3, z=2), ...]
+
     """
+    tile = _parse_tile_arg(*tile)
+
+    # zoom is a keyword-only argument.
     zoom = kwargs.get("zoom", None)
 
-    if len(tile) == 1:
-        tile = tile[0]
-    if len(tile) == 2:
-        raise ValueError(
-            "Could not parse tile! Make sure that if you are calling this with zoom, you call this with zoom as a keyword argument."
-        )
     xtile, ytile, ztile = tile
 
     if zoom is not None and (ztile > zoom or zoom != int(zoom)):
-        raise ValueError(
-            "zoom must be an integer and greater than the source tile!")
+        raise InvalidZoomError(
+            "zoom must be an integer and greater than that of the input tile")
 
     target_zoom = zoom if zoom is not None else ztile + 1
 
@@ -429,7 +491,7 @@ def children(*tile, **kwargs):
     return tiles
 
 
-def simplify(*tiles):
+def simplify(tiles):
     """Reduces the size of the tileset as much as possible by merging leaves into parents.
 
     Parameters
@@ -439,6 +501,7 @@ def simplify(*tiles):
     Returns
     -------
     list
+
     """
 
     def merge(merge_set):
@@ -499,6 +562,7 @@ def bounding_tile(*bbox, **kwds):
     Returns
     -------
     Tile
+
     """
     if len(bbox) == 2:
         bbox += bbox
@@ -559,6 +623,7 @@ def feature(
     Returns
     -------
     dict
+
     """
     west, south, east, north = bounds(tile)
     if projected == 'mercator':
@@ -578,8 +643,8 @@ def feature(
     geom = {
         'type': 'Polygon',
         'coordinates': [[
-            [west, south], 
-            [west, north], 
+            [west, south],
+            [west, north],
             [east, north],
             [east, south],
             [west, south]]]}
