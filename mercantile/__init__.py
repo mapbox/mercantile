@@ -1,7 +1,7 @@
 """Web mercator XYZ tile utilities"""
 
 from collections import namedtuple
-from collections import Sequence
+from collections.abc import Sequence
 import math
 
 
