@@ -1,11 +1,17 @@
-Authors
-=======
-
-* Sean Gillies <sean@mapbox.com>
-* Matthew Perry
-* Patrick M Young
-* Amit Kapadia
-* Damon Burgett
-* Stefano Costa
-* Jacob Wasserman
-* Brendan Ward
+Sean Gillies <sean@mapbox.com>
+Matthew Perry <perrygeo@gmail.com>
+Felix Jung <jung@posteo.de>
+Patrick M Young <patrick.mckendree.young@gmail.com>
+Amit Kapadia <akapad@gmail.com>
+Brendan Ward <bcward@consbio.org>
+Sam Murphy <samsammurphy@gmail.com>
+dnomadb <damon@mapbox.com>
+Andrew Harvey <andrew@alantgeo.com.au>
+Daniel J. H <daniel+github@trvx.org>
+Jacob Wasserman <jwasserman@gmail.com>
+James Gill <jagill@users.noreply.github.com>
+Jeremiah Cooper <JCooper@jeremiahcooper.com>
+Rohit Singh <singhrohit2@hotmail.com>
+Stefano Costa <steko@iosa.it>
+drnextgis <rykovd@gmail.com>
+jqtrde <hi@jacquestardie.org>
