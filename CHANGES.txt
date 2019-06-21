@@ -1,8 +1,8 @@
 Changes
 =======
 
-1.1.0 (TBD)
------------
+1.1.0 (2019-06-21)
+------------------
 
 - A zoom keyword argument has been added to both ``children()`` and
   ``parent()``, allowing the user to specify the zoom level for each (#94).
