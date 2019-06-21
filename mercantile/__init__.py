@@ -1,8 +1,13 @@
 """Web mercator XYZ tile utilities"""
 
 from collections import namedtuple
-from collections.abc import Sequence
 import math
+import sys
+
+if sys.version_info < (3,):
+    from collections import Sequence
+else:
+    from collections.abc import Sequence
 
 
 __version__ = '1.1dev'
