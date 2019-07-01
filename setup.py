@@ -1,4 +1,5 @@
-import os
+"""Mercantile package build script"""
+
 import sys
 
 from setuptools import setup, find_packages
@@ -8,12 +9,18 @@ open_kwds = {}
 if sys.version_info > (3,):
     open_kwds["encoding"] = "utf-8"
 
+with open("mercantile/__init__.py") as f:
+    for line in f:
+        if "__version__" in line:
+            version = line.split("=")[1].strip().strip('"').strip("'")
+            continue
+
 with open("README.rst", **open_kwds) as f:
     readme = f.read()
 
 setup(
     name="mercantile",
-    version="1.1.0",
+    version=version,
     description="Web mercator XYZ tile utilities",
     long_description=readme,
     classifiers=[
