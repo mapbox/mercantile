@@ -10,7 +10,7 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 __all__ = [
     'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',

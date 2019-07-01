@@ -248,31 +248,31 @@ def test_children_multi():
 def test_child_fractional_zoom():
     with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.children((243, 166, 9), zoom=10.2)
-    assert "zoom must be an integer and greater than" in str(e)
+    assert "zoom must be an integer and greater than" in str(e.value)
 
 
 def test_child_bad_tile_zoom():
     with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.children((243, 166, 9), zoom=8)
-    assert "zoom must be an integer and greater than" in str(e)
+    assert "zoom must be an integer and greater than" in str(e.value)
 
 
 def test_parent_fractional_tile():
     with pytest.raises(mercantile.ParentTileError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=1)
-    assert "the parent of a non-integer tile is undefined" in str(e)
+    assert "the parent of a non-integer tile is undefined" in str(e.value)
 
 
 def test_parent_fractional_zoom():
     with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.parent((243, 166, 9), zoom=1.2)
-    assert "zoom must be an integer and less than" in str(e)
+    assert "zoom must be an integer and less than" in str(e.value)
 
 
 def test_parent_bad_tile_zoom():
     with pytest.raises(mercantile.InvalidZoomError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=10)
-    assert "zoom must be an integer and less than" in str(e)
+    assert "zoom must be an integer and less than" in str(e.value)
 
 
 def test_simplify():
