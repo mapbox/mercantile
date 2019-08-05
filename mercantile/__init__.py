@@ -10,15 +10,30 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = '1.1.1'
+__version__ = "1.1.1"
 
 __all__ = [
-    'Bbox', 'LngLat', 'LngLatBbox', 'Tile', 'bounding_tile', 'bounds',
-    'children', 'feature', 'lnglat', 'parent', 'quadkey', 'quadkey_to_tile',
-    'simplify', 'tile', 'tiles', 'ul', 'xy_bounds']
+    "Bbox",
+    "LngLat",
+    "LngLatBbox",
+    "Tile",
+    "bounding_tile",
+    "bounds",
+    "children",
+    "feature",
+    "lnglat",
+    "parent",
+    "quadkey",
+    "quadkey_to_tile",
+    "simplify",
+    "tile",
+    "tiles",
+    "ul",
+    "xy_bounds",
+]
 
 
-Tile = namedtuple('Tile', ['x', 'y', 'z'])
+Tile = namedtuple("Tile", ["x", "y", "z"])
 """An XYZ web mercator tile
 
 Attributes
@@ -28,7 +43,7 @@ x, y, z : int
 """
 
 
-LngLat = namedtuple('LngLat', ['lng', 'lat'])
+LngLat = namedtuple("LngLat", ["lng", "lat"])
 """A longitude and latitude pair
 
 Attributes
@@ -38,7 +53,7 @@ lng, lat : float
 """
 
 
-LngLatBbox = namedtuple('LngLatBbox', ['west', 'south', 'east', 'north'])
+LngLatBbox = namedtuple("LngLatBbox", ["west", "south", "east", "north"])
 """A geographic bounding box
 
 Attributes
@@ -48,7 +63,7 @@ west, south, east, north : float
 """
 
 
-Bbox = namedtuple('Bbox', ['left', 'bottom', 'right', 'top'])
+Bbox = namedtuple("Bbox", ["left", "bottom", "right", "top"])
 """A web mercator bounding box
 
 Attributes
@@ -104,7 +119,9 @@ def _parse_tile_arg(*args):
     if len(args) == 3:
         return Tile(*args)
     else:
-        raise TileArgParsingError("the tile argument may have 1 or 3 values. Note that zoom is a keyword-only argument")
+        raise TileArgParsingError(
+            "the tile argument may have 1 or 3 values. Note that zoom is a keyword-only argument"
+        )
 
 
 def ul(*tile):
@@ -191,12 +208,11 @@ def xy(lng, lat, truncate=False):
         lng, lat = truncate_lnglat(lng, lat)
     x = 6378137.0 * math.radians(lng)
     if lat <= -90:
-        y = float('-inf')
+        y = float("-inf")
     elif lat >= 90:
-        y = float('inf')
+        y = float("inf")
     else:
-        y = 6378137.0 * math.log(
-            math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
+        y = 6378137.0 * math.log(math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
     return x, y
 
 
@@ -219,7 +235,8 @@ def lnglat(x, y, truncate=False):
     A = 6378137.0
     lng, lat = (
         x * R2D / A,
-        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D)
+        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D,
+    )
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     return LngLat(lng, lat)
@@ -269,11 +286,17 @@ def tile(lng, lat, zoom, truncate=False):
     xtile = int(math.floor((lng + 180.0) / 360.0 * n))
 
     try:
-        ytile = int(math.floor((1.0 - math.log(
-            math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n))
+        ytile = int(
+            math.floor(
+                (1.0 - math.log(math.tan(lat) + (1.0 / math.cos(lat))) / math.pi)
+                / 2.0
+                * n
+            )
+        )
     except ValueError:
         raise InvalidLatitudeError(
-            "Y can not be computed for latitude {} radians".format(lat))
+            "Y can not be computed for latitude {} radians".format(lat)
+        )
     else:
         return Tile(xtile, ytile, zoom)
 
@@ -302,7 +325,7 @@ def quadkey(*tile):
         if ytile & mask:
             digit += 2
         qk.append(str(digit))
-    return ''.join(qk)
+    return "".join(qk)
 
 
 def quadkey_to_tile(qk):
@@ -323,14 +346,14 @@ def quadkey_to_tile(qk):
     xtile, ytile = 0, 0
     for i, digit in enumerate(reversed(qk)):
         mask = 1 << i
-        if digit == '1':
+        if digit == "1":
             xtile = xtile | mask
-        elif digit == '2':
+        elif digit == "2":
             ytile = ytile | mask
-        elif digit == '3':
+        elif digit == "3":
             xtile = xtile | mask
             ytile = ytile | mask
-        elif digit != '0':
+        elif digit != "0":
             raise QuadKeyError("Unexpected quadkey digit: %r", digit)
     return Tile(xtile, ytile, i + 1)
 
@@ -421,7 +444,8 @@ def parent(*tile, **kwargs):
 
     if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
         raise InvalidZoomError(
-            "zoom must be an integer and less than that of the input tile")
+            "zoom must be an integer and less than that of the input tile"
+        )
 
     x, y, z = tile
     if x != int(x) or y != int(y) or z != int(z):
@@ -480,7 +504,8 @@ def children(*tile, **kwargs):
 
     if zoom is not None and (ztile > zoom or zoom != int(zoom)):
         raise InvalidZoomError(
-            "zoom must be an integer and greater than that of the input tile")
+            "zoom must be an integer and greater than that of the input tile"
+        )
 
     target_zoom = zoom if zoom is not None else ztile + 1
 
@@ -491,7 +516,7 @@ def children(*tile, **kwargs):
             Tile(xtile * 2, ytile * 2, ztile + 1),
             Tile(xtile * 2 + 1, ytile * 2, ztile + 1),
             Tile(xtile * 2 + 1, ytile * 2 + 1, ztile + 1),
-            Tile(xtile * 2, ytile * 2 + 1, ztile + 1)
+            Tile(xtile * 2, ytile * 2 + 1, ztile + 1),
         ]
     return tiles
 
@@ -572,7 +597,7 @@ def bounding_tile(*bbox, **kwds):
     if len(bbox) == 2:
         bbox += bbox
     w, s, e, n = bbox
-    truncate = bool(kwds.get('truncate'))
+    truncate = bool(kwds.get("truncate"))
     if truncate:
         w, s = truncate_lnglat(w, s)
         e, n = truncate_lnglat(e, n)
@@ -597,15 +622,14 @@ def _getBboxZoom(*bbox):
     MAX_ZOOM = 28
     for z in range(0, MAX_ZOOM):
         mask = 1 << (32 - (z + 1))
-        if ((bbox[0] & mask) != (bbox[2] & mask) or
-                (bbox[1] & mask) != (bbox[3] & mask)):
+        if (bbox[0] & mask) != (bbox[2] & mask) or (bbox[1] & mask) != (bbox[3] & mask):
             return z
     return MAX_ZOOM
 
 
 def feature(
-        tile, fid=None, props=None, projected='geographic', buffer=None,
-        precision=None):
+    tile, fid=None, props=None, projected="geographic", buffer=None, precision=None
+):
     """Get the GeoJSON feature corresponding to a tile
 
     Parameters
@@ -631,7 +655,7 @@ def feature(
 
     """
     west, south, east, north = bounds(tile)
-    if projected == 'mercator':
+    if projected == "mercator":
         west, south = xy(west, south, truncate=False)
         east, north = xy(east, north, truncate=False)
     if buffer:
@@ -641,27 +665,25 @@ def feature(
         north += buffer
     if precision and precision >= 0:
         west, south, east, north = (
-            round(v, precision) for v in (west, south, east, north))
-    bbox = [
-        min(west, east), min(south, north),
-        max(west, east), max(south, north)]
+            round(v, precision) for v in (west, south, east, north)
+        )
+    bbox = [min(west, east), min(south, north), max(west, east), max(south, north)]
     geom = {
-        'type': 'Polygon',
-        'coordinates': [[
-            [west, south],
-            [west, north],
-            [east, north],
-            [east, south],
-            [west, south]]]}
+        "type": "Polygon",
+        "coordinates": [
+            [[west, south], [west, north], [east, north], [east, south], [west, south]]
+        ],
+    }
     xyz = str(tile)
     feat = {
-        'type': 'Feature',
-        'bbox': bbox,
-        'id': xyz,
-        'geometry': geom,
-        'properties': {'title': 'XYZ tile %s' % xyz}}
+        "type": "Feature",
+        "bbox": bbox,
+        "id": xyz,
+        "geometry": geom,
+        "properties": {"title": "XYZ tile %s" % xyz},
+    }
     if props:
-        feat['properties'].update(props)
+        feat["properties"].update(props)
     if fid:
-        feat['id'] = fid
+        feat["id"] = fid
     return feat

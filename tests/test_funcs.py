@@ -172,7 +172,7 @@ def test_quadkey_failure():
         mercantile.quadkey_to_tile("lolwut")
 
 
-@pytest.mark.parametrize('args', [(486, 332, 10, 9), ((486, 332, 10), 9)])
+@pytest.mark.parametrize("args", [(486, 332, 10, 9), ((486, 332, 10), 9)])
 def test_parent_invalid_args(args):
     """tile arg must have length 1 or 3"""
     with pytest.raises(mercantile.TileArgParsingError):
@@ -335,11 +335,12 @@ def test_truncate_lat_over():
 
 
 @pytest.mark.parametrize(
-    "args, tile", [
+    "args, tile",
+    [
         ((0, 0, 0), (0, 0, 0)),
         (mercantile.Tile(0, 0, 0), (0, 0, 0)),
         (((0, 0, 0)), (0, 0, 0)),
-    ]
+    ],
 )
 def test_arg_parse(args, tile):
     """Helper function parse tile args properly"""

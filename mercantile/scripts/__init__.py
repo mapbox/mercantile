@@ -34,10 +34,10 @@ def coords(obj):
     From python-geojson package."""
     if isinstance(obj, (tuple, list)):
         coordinates = obj
-    elif 'geometry' in obj:
-        coordinates = obj['geometry']['coordinates']
+    elif "geometry" in obj:
+        coordinates = obj["geometry"]["coordinates"]
     else:
-        coordinates = obj.get('coordinates', obj)
+        coordinates = obj.get("coordinates", obj)
     for e in coordinates:
         if isinstance(e, (float, int)):
             yield tuple(coordinates)
@@ -66,16 +66,17 @@ def iter_lines(lines):
 
 # The CLI command group.
 @click.group(help="Command line interface for the Mercantile Python package.")
-@click.option('--verbose', '-v', count=True, help="Increase verbosity.")
-@click.option('--quiet', '-q', count=True, help="Decrease verbosity.")
-@click.version_option(version=mercantile.__version__, message='%(version)s')
+@click.option("--verbose", "-v", count=True, help="Increase verbosity.")
+@click.option("--quiet", "-q", count=True, help="Decrease verbosity.")
+@click.version_option(version=mercantile.__version__, message="%(version)s")
 @click.pass_context
 def cli(ctx, verbose, quiet):
     """Execute the main mercantile command"""
     verbosity = verbose - quiet
     configure_logging(verbosity)
     ctx.obj = {}
-    ctx.obj['verbosity'] = verbosity
+    ctx.obj["verbosity"] = verbosity
+
 
 # Commands are below.
 
@@ -83,46 +84,89 @@ def cli(ctx, verbose, quiet):
 # The shapes command.
 @cli.command(short_help="Print the shapes of tiles as GeoJSON.")
 # This input is either a filename, stdin, or a string.
-@click.argument('input', default='-', required=False)
+@click.argument("input", default="-", required=False)
 # Coordinate precision option.
-@click.option('--precision', type=int, default=None,
-              help="Decimal precision of coordinates.")
+@click.option(
+    "--precision", type=int, default=None, help="Decimal precision of coordinates."
+)
 # JSON formatting options.
-@click.option('--indent', default=None, type=int,
-              help="Indentation level for JSON output")
-@click.option('--compact/--no-compact', default=False,
-              help="Use compact separators (',', ':').")
+@click.option(
+    "--indent", default=None, type=int, help="Indentation level for JSON output"
+)
+@click.option(
+    "--compact/--no-compact", default=False, help="Use compact separators (',', ':')."
+)
 # Geographic (default) or Mercator switch.
-@click.option('--geographic', 'projected', flag_value='geographic',
-              default=True,
-              help="Output in geographic coordinates (the default).")
-@click.option('--mercator', 'projected', flag_value='mercator',
-              help="Output in Web Mercator coordinates.")
-@click.option('--seq', is_flag=True, default=False,
-              help="Write a RS-delimited JSON sequence (default is LF).")
+@click.option(
+    "--geographic",
+    "projected",
+    flag_value="geographic",
+    default=True,
+    help="Output in geographic coordinates (the default).",
+)
+@click.option(
+    "--mercator",
+    "projected",
+    flag_value="mercator",
+    help="Output in Web Mercator coordinates.",
+)
+@click.option(
+    "--seq",
+    is_flag=True,
+    default=False,
+    help="Write a RS-delimited JSON sequence (default is LF).",
+)
 # GeoJSON feature (default) or collection switch. Meaningful only
 # when --x-json-seq is used.
-@click.option('--feature', 'output_mode', flag_value='feature',
-              default=True,
-              help="Output as sequence of GeoJSON features (the default).")
-@click.option('--bbox', 'output_mode', flag_value='bbox',
-              help="Output as sequence of GeoJSON bbox arrays.")
-@click.option('--collect', is_flag=True, default=False,
-              help="Output as a GeoJSON feature collections.")
+@click.option(
+    "--feature",
+    "output_mode",
+    flag_value="feature",
+    default=True,
+    help="Output as sequence of GeoJSON features (the default).",
+)
+@click.option(
+    "--bbox",
+    "output_mode",
+    flag_value="bbox",
+    help="Output as sequence of GeoJSON bbox arrays.",
+)
+@click.option(
+    "--collect",
+    is_flag=True,
+    default=False,
+    help="Output as a GeoJSON feature collections.",
+)
 # Optionally write out bboxen in a form that goes
 # straight into GDAL utilities like gdalwarp.
-@click.option('--extents/--no-extents', default=False,
-              help="Write shape extents as ws-separated strings (default is "
-                   "False).")
+@click.option(
+    "--extents/--no-extents",
+    default=False,
+    help="Write shape extents as ws-separated strings (default is " "False).",
+)
 # Optionally buffer the shapes by shifting the x and y values of each
 # vertex by a constant number of decimal degrees or meters (depending
 # on whether --geographic or --mercator is in effect).
-@click.option('--buffer', type=float, default=None,
-              help="Shift shape x and y values by a constant number")
+@click.option(
+    "--buffer",
+    type=float,
+    default=None,
+    help="Shift shape x and y values by a constant number",
+)
 @click.pass_context
 def shapes(
-        ctx, input, precision, indent, compact, projected,
-        seq, output_mode, collect, extents, buffer):
+    ctx,
+    input,
+    precision,
+    indent,
+    compact,
+    projected,
+    seq,
+    output_mode,
+    collect,
+    extents,
+    buffer,
+):
 
     """Reads one or more Web Mercator tile descriptions
     from stdin and writes either a GeoJSON feature collection (the
@@ -142,11 +186,11 @@ def shapes(
     In the latter case, the properties object will be used to update
     the properties object of the output feature.
     """
-    dump_kwds = {'sort_keys': True}
+    dump_kwds = {"sort_keys": True}
     if indent:
-        dump_kwds['indent'] = indent
+        dump_kwds["indent"] = indent
     if compact:
-        dump_kwds['separators'] = (',', ':')
+        dump_kwds["separators"] = (",", ":")
 
     src = normalize_input(input)
     features = []
@@ -156,21 +200,25 @@ def shapes(
     for i, line in enumerate(iter_lines(src)):
         obj = json.loads(line)
         if isinstance(obj, dict):
-            x, y, z = obj['tile'][:3]
-            props = obj.get('properties')
-            fid = obj.get('id')
+            x, y, z = obj["tile"][:3]
+            props = obj.get("properties")
+            fid = obj.get("id")
         elif isinstance(obj, list):
             x, y, z = obj[:3]
             props = {}
             fid = None
         else:
-            raise click.BadParameter(
-                "{0}".format(obj), param=input, param_hint='input')
+            raise click.BadParameter("{0}".format(obj), param=input, param_hint="input")
 
         feature = mercantile.feature(
-            (x, y, z), fid=fid, props=props, projected=projected,
-            buffer=buffer, precision=precision)
-        bbox = feature['bbox']
+            (x, y, z),
+            fid=fid,
+            props=props,
+            projected=projected,
+            buffer=buffer,
+            precision=precision,
+        )
+        bbox = feature["bbox"]
         w, s, e, n = bbox
         col_xs.extend([w, e])
         col_ys.extend([s, n])
@@ -181,30 +229,37 @@ def shapes(
             click.echo(" ".join(map(str, bbox)))
         else:
             if seq:
-                click.echo(u'\x1e')
-            if output_mode == 'bbox':
+                click.echo(u"\x1e")
+            if output_mode == "bbox":
                 click.echo(json.dumps(bbox, **dump_kwds))
-            elif output_mode == 'feature':
+            elif output_mode == "feature":
                 click.echo(json.dumps(feature, **dump_kwds))
 
     if collect and features:
         bbox = [min(col_xs), min(col_ys), max(col_xs), max(col_ys)]
-        click.echo(json.dumps({
-            'type': 'FeatureCollection',
-            'bbox': bbox, 'features': features},
-            **dump_kwds))
+        click.echo(
+            json.dumps(
+                {"type": "FeatureCollection", "bbox": bbox, "features": features},
+                **dump_kwds
+            )
+        )
 
 
 # The tiles command.
-@cli.command(short_help="Print tiles that overlap or contain a lng/lat point, "
-                        "bounding box, or GeoJSON objects.")
+@cli.command(
+    short_help="Print tiles that overlap or contain a lng/lat point, "
+    "bounding box, or GeoJSON objects."
+)
 # Mandatory Mercator zoom level argument.
-@click.argument('zoom', type=int, default=-1)
+@click.argument("zoom", type=int, default=-1)
 # This input is either a filename, stdin, or a string.
 # Has to follow the zoom arg.
-@click.argument('input', default='-', required=False)
-@click.option('--seq/--lf', default=False,
-              help="Write a RS-delimited JSON sequence (default is LF).")
+@click.argument("input", default="-", required=False)
+@click.option(
+    "--seq/--lf",
+    default=False,
+    help="Write a RS-delimited JSON sequence (default is LF).",
+)
 @click.pass_context
 def tiles(ctx, zoom, input, seq):
     """Lists Web Mercator tiles at ZOOM level intersecting
@@ -233,19 +288,22 @@ def tiles(ctx, zoom, input, seq):
     first_line = next(src)
 
     # If input is RS-delimited JSON sequence.
-    if first_line.startswith(u'\x1e'):
+    if first_line.startswith(u"\x1e"):
+
         def feature_gen():
-            buffer = first_line.strip(u'\x1e')
+            buffer = first_line.strip(u"\x1e")
             for line in src:
-                if line.startswith(u'\x1e'):
+                if line.startswith(u"\x1e"):
                     if buffer:
                         yield json.loads(buffer)
-                    buffer = line.strip(u'\x1e')
+                    buffer = line.strip(u"\x1e")
                 else:
                     buffer += line
             else:
                 yield json.loads(buffer)
+
     else:
+
         def feature_gen():
             yield json.loads(first_line)
             for line in src:
@@ -260,14 +318,15 @@ def tiles(ctx, zoom, input, seq):
                 bbox += bbox
             if len(bbox) != 4:
                 raise click.BadParameter(
-                    "{0}".format(bbox), param=input, param_hint='input')
+                    "{0}".format(bbox), param=input, param_hint="input"
+                )
         elif isinstance(obj, dict):
-            if 'bbox' in obj:
-                bbox = obj['bbox']
+            if "bbox" in obj:
+                bbox = obj["bbox"]
             else:
                 box_xs = []
                 box_ys = []
-                for feat in obj.get('features', [obj]):
+                for feat in obj.get("features", [obj]):
                     lngs, lats = zip(*list(coords(feat)))
                     box_xs.extend([min(lngs), max(lngs)])
                     box_ys.extend([min(lats), max(lats)])
@@ -284,23 +343,27 @@ def tiles(ctx, zoom, input, seq):
             east -= epsilon
             north -= epsilon
 
-        for tile in mercantile.tiles(
-                west, south, east, north, [zoom], truncate=False):
+        for tile in mercantile.tiles(west, south, east, north, [zoom], truncate=False):
             vals = (tile.x, tile.y, zoom)
             output = json.dumps(vals)
             if seq:
-                click.echo(u'\x1e')
+                click.echo(u"\x1e")
             click.echo(output)
 
 
 # The bounding-tile command.
-@cli.command('bounding-tile',
-             short_help="Print the bounding tile of a lng/lat point, "
-                        "bounding box, or GeoJSON objects.")
+@cli.command(
+    "bounding-tile",
+    short_help="Print the bounding tile of a lng/lat point, "
+    "bounding box, or GeoJSON objects.",
+)
 # This input is either a filename, stdin, or a string.
-@click.argument('input', default='-', required=False)
-@click.option('--seq/--lf', default=False,
-              help="Write a RS-delimited JSON sequence (default is LF).")
+@click.argument("input", default="-", required=False)
+@click.option(
+    "--seq/--lf",
+    default=False,
+    help="Write a RS-delimited JSON sequence (default is LF).",
+)
 @click.pass_context
 def bounding_tile(ctx, input, seq):
     """Print the Web Mercator tile at ZOOM level bounding
@@ -324,19 +387,22 @@ def bounding_tile(ctx, input, seq):
     first_line = next(src)
 
     # If input is RS-delimited JSON sequence.
-    if first_line.startswith(u'\x1e'):
+    if first_line.startswith(u"\x1e"):
+
         def feature_gen():
-            buffer = first_line.strip(u'\x1e')
+            buffer = first_line.strip(u"\x1e")
             for line in src:
-                if line.startswith(u'\x1e'):
+                if line.startswith(u"\x1e"):
                     if buffer:
                         yield json.loads(buffer)
-                    buffer = line.strip(u'\x1e')
+                    buffer = line.strip(u"\x1e")
                 else:
                     buffer += line
             else:
                 yield json.loads(buffer)
+
     else:
+
         def feature_gen():
             yield json.loads(first_line)
             for line in src:
@@ -351,32 +417,36 @@ def bounding_tile(ctx, input, seq):
                 bbox += bbox
             if len(bbox) != 4:
                 raise click.BadParameter(
-                    "{0}".format(bbox), param=input, param_hint='input')
+                    "{0}".format(bbox), param=input, param_hint="input"
+                )
         elif isinstance(obj, dict):
-            if 'bbox' in obj:
-                bbox = obj['bbox']
+            if "bbox" in obj:
+                bbox = obj["bbox"]
             else:
                 box_xs = []
                 box_ys = []
-                for feat in obj.get('features', [obj]):
+                for feat in obj.get("features", [obj]):
                     lngs, lats = zip(*list(coords(feat)))
                     box_xs.extend([min(lngs), max(lngs)])
                     box_ys.extend([min(lats), max(lats)])
                 bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
         west, south, east, north = bbox
-        vals = mercantile.bounding_tile(
-            west, south, east, north, truncate=False)
+        vals = mercantile.bounding_tile(west, south, east, north, truncate=False)
         output = json.dumps(vals)
         if seq:
-            click.echo(u'\x1e')
+            click.echo(u"\x1e")
         click.echo(output)
 
 
 # The children command.
 @cli.command(short_help="Print the children of the tile.")
-@click.argument('input', default='-', required=False)
-@click.option('--depth', type=int, default=1,
-              help="Number of zoom levels to traverse (default is 1).")
+@click.argument("input", default="-", required=False)
+@click.option(
+    "--depth",
+    type=int,
+    default=1,
+    help="Number of zoom levels to traverse (default is 1).",
+)
 @click.pass_context
 def children(ctx, input, depth):
     """Takes [x, y, z] tiles as input and writes children to stdout
@@ -406,9 +476,13 @@ def children(ctx, input, depth):
 
 # The parent command.
 @cli.command(short_help="Print the parent tile.")
-@click.argument('input', default='-', required=False)
-@click.option('--depth', type=int, default=1,
-              help="Number of zoom levels to traverse (default is 1).")
+@click.argument("input", default="-", required=False)
+@click.option(
+    "--depth",
+    type=int,
+    default=1,
+    help="Number of zoom levels to traverse (default is 1).",
+)
 @click.pass_context
 def parent(ctx, input, depth):
     """Takes [x, y, z] tiles as input and writes parents to stdout
@@ -429,8 +503,7 @@ def parent(ctx, input, depth):
     for line in iter_lines(src):
         tile = json.loads(line)[:3]
         if tile[2] - depth < 0:
-            raise click.UsageError(
-                "Invalid parent level: {0}".format(tile[2] - depth))
+            raise click.UsageError("Invalid parent level: {0}".format(tile[2] - depth))
         for i in range(depth):
             tile = mercantile.parent(tile)
         output = json.dumps(tile)
@@ -438,7 +511,7 @@ def parent(ctx, input, depth):
 
 
 @cli.command(short_help="Convert to/from quadkeys.")
-@click.argument('input', default='-', required=False)
+@click.argument("input", default="-", required=False)
 @click.pass_context
 def quadkey(ctx, input):
     """Takes [x, y, z] tiles or quadkeys as input and writes
@@ -464,7 +537,7 @@ def quadkey(ctx, input):
     src = normalize_input(input)
     try:
         for line in iter_lines(src):
-            if line[0] == '[':
+            if line[0] == "[":
                 tile = json.loads(line)[:3]
                 output = mercantile.quadkey(tile)
             else:
@@ -472,5 +545,4 @@ def quadkey(ctx, input):
                 output = json.dumps(tile)
             click.echo(output)
     except mercantile.QuadKeyError:
-        raise click.BadParameter(
-            "{0}".format(input), param=input, param_hint='input')
+        raise click.BadParameter("{0}".format(input), param=input, param_hint="input")
