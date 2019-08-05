@@ -151,7 +151,9 @@ def test_global_tiles_clamped():
     assert max(t.y for t in tiles) == 1
 
 
-@pytest.mark.parametrize("t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10)])
+@pytest.mark.parametrize(
+    "t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10)]
+)
 def test_tiles_roundtrip(t):
     """tiles(bounds(tile)) gives the tile"""
     res = list(mercantile.tiles(*mercantile.bounds(t), zooms=[t.z]))

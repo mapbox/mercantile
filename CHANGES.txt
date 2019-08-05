@@ -4,6 +4,7 @@ Changes
 1.1.2 (2019-08-05)
 ------------------
 
+- fid of 0 is now allowed by the ``feature()`` function (#85).
 - Passing the bounds of a tile to ``tiles()`` now yields exactly that tile
   only (given the correct zoom), resolving #84 and #87.
 - QuadKeyError derives from ValueError again, resolving issue #98, but only
