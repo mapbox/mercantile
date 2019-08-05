@@ -1,3 +1,5 @@
+import warnings
+
 import pytest
 
 import mercantile
@@ -167,9 +169,13 @@ def test_empty_quadkey_to_tile():
     assert mercantile.quadkey_to_tile(qk) == expected
 
 
-def test_quadkey_failure():
+def test_quadkey_failure(recwarn):
+    """expect a deprecation warning"""
+    warnings.simplefilter("always")
     with pytest.raises(mercantile.QuadKeyError):
         mercantile.quadkey_to_tile("lolwut")
+    assert len(recwarn) == 1
+    assert recwarn.pop(DeprecationWarning)
 
 
 @pytest.mark.parametrize("args", [(486, 332, 10, 9), ((486, 332, 10), 9)])

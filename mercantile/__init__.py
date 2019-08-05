@@ -3,6 +3,7 @@
 from collections import namedtuple
 import math
 import sys
+import warnings
 
 if sys.version_info < (3,):
     from collections import Sequence
@@ -354,6 +355,10 @@ def quadkey_to_tile(qk):
             xtile = xtile | mask
             ytile = ytile | mask
         elif digit != "0":
+            warnings.warn(
+                "QuadKeyError will not derive from ValueError in mercantile 2.0.",
+                DeprecationWarning,
+            )
             raise QuadKeyError("Unexpected quadkey digit: %r", digit)
     return Tile(xtile, ytile, i + 1)
 

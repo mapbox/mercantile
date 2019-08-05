@@ -5,6 +5,9 @@ Changes
 ------------------
 
 - Format source using black.
+- QuadKeyError derives from ValueError again, resolving issue #98, but only
+  until version 2.0. A deprecation warning explaining this is raised from
+  quadkey_to_tile just before QuadKeyError is raised.
 
 1.1.1 (2019-07-01)
 ------------------
