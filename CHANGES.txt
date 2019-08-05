@@ -4,10 +4,12 @@ Changes
 1.1.2 (2019-08-05)
 ------------------
 
-- Format source using black.
+- Passing the bounds of a tile to ``tiles()`` now yields exactly that tile
+  only (given the correct zoom), resolving #84 and #87.
 - QuadKeyError derives from ValueError again, resolving issue #98, but only
   until version 2.0. A deprecation warning explaining this is raised from
   quadkey_to_tile just before QuadKeyError is raised.
+- Format source using black.
 
 1.1.1 (2019-07-01)
 ------------------

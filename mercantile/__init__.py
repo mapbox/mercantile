@@ -263,6 +263,25 @@ def xy_bounds(*tile):
     return Bbox(left, bottom, right, top)
 
 
+def _tile(lng, lat, zoom, truncate=False):
+    if truncate:
+        lng, lat = truncate_lnglat(lng, lat)
+    lat = math.radians(lat)
+    n = 2.0 ** zoom
+    xtile = (lng + 180.0) / 360.0 * n
+
+    try:
+        ytile = (
+            (1.0 - math.log(math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n
+        )
+    except ValueError:
+        raise InvalidLatitudeError(
+            "Y can not be computed for latitude {} radians".format(lat)
+        )
+    else:
+        return xtile, ytile, zoom
+
+
 def tile(lng, lat, zoom, truncate=False):
     """Get the tile containing a longitude and latitude
 
@@ -280,26 +299,10 @@ def tile(lng, lat, zoom, truncate=False):
     Tile
 
     """
-    if truncate:
-        lng, lat = truncate_lnglat(lng, lat)
-    lat = math.radians(lat)
-    n = 2.0 ** zoom
-    xtile = int(math.floor((lng + 180.0) / 360.0 * n))
-
-    try:
-        ytile = int(
-            math.floor(
-                (1.0 - math.log(math.tan(lat) + (1.0 / math.cos(lat))) / math.pi)
-                / 2.0
-                * n
-            )
-        )
-    except ValueError:
-        raise InvalidLatitudeError(
-            "Y can not be computed for latitude {} radians".format(lat)
-        )
-    else:
-        return Tile(xtile, ytile, zoom)
+    xtile, ytile, zoom = _tile(lng, lat, zoom, truncate=truncate)
+    xtile = int(math.floor(xtile))
+    ytile = int(math.floor(ytile))
+    return Tile(xtile, ytile, zoom)
 
 
 def quadkey(*tile):
@@ -364,7 +367,7 @@ def quadkey_to_tile(qk):
 
 
 def tiles(west, south, east, north, zooms, truncate=False):
-    """Get the tiles intersecting a geographic bounding box
+    """Get the tiles overlapped by a geographic bounding box
 
     Parameters
     ----------
@@ -378,6 +381,11 @@ def tiles(west, south, east, north, zooms, truncate=False):
     Yields
     ------
     Tile
+
+    Notes
+    -----
+    A small epsilon is used on the south and east parameters so that this
+    function yields exactly one tile when given the bounds of that same tile.
 
     """
     if truncate:
@@ -401,16 +409,26 @@ def tiles(west, south, east, north, zooms, truncate=False):
         if not isinstance(zooms, Sequence):
             zooms = [zooms]
 
+        epsilon = 1.0e-9
+
         for z in zooms:
-            ll = tile(w, s, z)
-            ur = tile(e, n, z)
+            llx, lly, llz = _tile(w, s, z)
+
+            if lly % 1 < epsilon / 10:
+                lly = lly - epsilon
+
+            urx, ury, urz = _tile(e, n, z)
+            if urx % 1 < epsilon / 10:
+                urx = urx - epsilon
 
             # Clamp left x and top y at 0.
-            llx = 0 if ll.x < 0 else ll.x
-            ury = 0 if ur.y < 0 else ur.y
+            llx = 0 if llx < 0 else llx
+            ury = 0 if ury < 0 else ury
 
-            for i in range(llx, min(ur.x + 1, 2 ** z)):
-                for j in range(ury, min(ll.y + 1, 2 ** z)):
+            llx, urx, lly, ury = map(lambda x: int(math.floor(x)), [llx, urx, lly, ury])
+
+            for i in range(llx, min(urx + 1, 2 ** z)):
+                for j in range(ury, min(lly + 1, 2 ** z)):
                     yield Tile(i, j, z)
 
 

@@ -151,6 +151,24 @@ def test_global_tiles_clamped():
     assert max(t.y for t in tiles) == 1
 
 
+@pytest.mark.parametrize("t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10)])
+def test_tiles_roundtrip(t):
+    """tiles(bounds(tile)) gives the tile"""
+    res = list(mercantile.tiles(*mercantile.bounds(t), zooms=[t.z]))
+    assert len(res) == 1
+    val = res.pop()
+    assert val.x == t.x
+    assert val.y == t.y
+    assert val.z == t.z
+
+
+def test_tiles_roundtrip_children():
+    """tiles(bounds(tile)) gives the tile's children"""
+    t = mercantile.Tile(x=3413, y=6202, z=14)
+    res = list(mercantile.tiles(*mercantile.bounds(t), zooms=[15]))
+    assert len(res) == 4
+
+
 def test_quadkey():
     tile = mercantile.Tile(486, 332, 10)
     expected = "0313102310"
