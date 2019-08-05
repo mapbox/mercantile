@@ -707,6 +707,6 @@ def feature(
     }
     if props:
         feat["properties"].update(props)
-    if fid:
+    if fid is not None:
         feat["id"] = fid
     return feat
