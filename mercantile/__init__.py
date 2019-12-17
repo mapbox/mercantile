@@ -33,6 +33,11 @@ __all__ = [
     "xy_bounds",
 ]
 
+R2D = 180 / math.pi
+RE = 6378137.0
+CE = 2 * math.pi * RE
+EPSILON = 1e-10
+
 
 Tile = namedtuple("Tile", ["x", "y", "z"])
 """An XYZ web mercator tile
@@ -168,12 +173,17 @@ def bounds(*tile):
     -------
     LngLatBBox
 
+    Notes
+    -----
+    Epsilon is subtracted from the right limit and added to the bottom
+    limit.
+
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
     b = ul(xtile + 1, ytile + 1, zoom)
-    return LngLatBbox(a[0], b[1] + 1e-10, b[0] - 1e-10, a[1])
+    return LngLatBbox(a[0], b[1] + EPSILON, b[0] - EPSILON, a[1])
 
 
 def truncate_lnglat(lng, lat):
@@ -207,13 +217,16 @@ def xy(lng, lat, truncate=False):
     """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
-    x = 6378137.0 * math.radians(lng)
+
+    x = RE * math.radians(lng)
+
     if lat <= -90:
         y = float("-inf")
     elif lat >= 90:
         y = float("inf")
     else:
-        y = 6378137.0 * math.log(math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
+        y = RE * math.log(math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
+
     return x, y
 
 
@@ -232,11 +245,9 @@ def lnglat(x, y, truncate=False):
     LngLat
 
     """
-    R2D = 180 / math.pi
-    A = 6378137.0
     lng, lat = (
-        x * R2D / A,
-        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D,
+        x * R2D / RE,
+        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / RE))) * R2D,
     )
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
@@ -255,11 +266,23 @@ def xy_bounds(*tile):
     -------
     Bbox
 
+    Notes
+    -----
+    Epsilon is subtracted from the right limit and added to the bottom
+    limit.
+
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
-    left, top = xy(*ul(xtile, ytile, zoom))
-    right, bottom = xy(*ul(xtile + 1, ytile + 1, zoom))
+
+    tile_size = CE / (2 ** zoom)
+
+    left = xtile * tile_size - CE / 2
+    right = left + tile_size - EPSILON
+
+    top = CE / 2 - ytile * tile_size
+    bottom = top - tile_size + EPSILON
+
     return Bbox(left, bottom, right, top)
 
 

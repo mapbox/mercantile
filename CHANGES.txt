@@ -4,6 +4,7 @@ Changes
 Next
 ----
 
+- The implementation of xy_bounds has been simplified and improved.
 - The geographic bounds of a tile have been made slightly smaller by
   subtracting epsilon from the right limit and adding epsilon to the bottom
   limit. The bounding tile of the bounds of a tile is now that same tile (#100).
