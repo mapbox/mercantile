@@ -1,6 +1,13 @@
 Changes
 =======
 
+Next
+----
+
+- The geographic bounds of a tile have been made slightly smaller by
+  subtracting epsilon from the right limit and adding epsilon to the bottom
+  limit. The bounding tile of the bounds of a tile is now that same tile (#100).
+
 1.1.2 (2019-08-05)
 ------------------
 

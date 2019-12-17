@@ -173,7 +173,7 @@ def bounds(*tile):
     xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
     b = ul(xtile + 1, ytile + 1, zoom)
-    return LngLatBbox(a[0], b[1], b[0], a[1])
+    return LngLatBbox(a[0], b[1] + 1e-10, b[0] - 1e-10, a[1])
 
 
 def truncate_lnglat(lng, lat):
@@ -264,16 +264,16 @@ def xy_bounds(*tile):
 
 
 def _tile(lng, lat, zoom, truncate=False):
+
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
-    lat = math.radians(lat)
+
+    sinlat = math.sin(math.radians(lat))
     n = 2.0 ** zoom
-    xtile = (lng + 180.0) / 360.0 * n
+    xtile = n * (lng / 360.0 + 0.5)
 
     try:
-        ytile = (
-            (1.0 - math.log(math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n
-        )
+        ytile = n * (0.5 - 0.25 * math.log((1.0 + sinlat) / (1.0 - sinlat)) / math.pi)
     except ValueError:
         raise InvalidLatitudeError(
             "Y can not be computed for latitude {} radians".format(lat)
@@ -619,25 +619,30 @@ def bounding_tile(*bbox, **kwds):
     """
     if len(bbox) == 2:
         bbox += bbox
+
     w, s, e, n = bbox
+
     truncate = bool(kwds.get("truncate"))
+
     if truncate:
         w, s = truncate_lnglat(w, s)
         e, n = truncate_lnglat(e, n)
-    # Algorithm ported directly from https://github.com/mapbox/tilebelt.
 
     try:
-        tmin = tile(w, s, 32, truncate=truncate)
-        tmax = tile(e, n, 32, truncate=truncate)
+        tmin = tile(w, n, 32, truncate=truncate)
+        tmax = tile(e, s, 32, truncate=truncate)
     except InvalidLatitudeError:
         return Tile(0, 0, 0)
 
     cell = tmin[:2] + tmax[:2]
     z = _getBboxZoom(*cell)
+
     if z == 0:
         return Tile(0, 0, 0)
+
     x = rshift(cell[0], (32 - z))
     y = rshift(cell[1], (32 - z))
+
     return Tile(x, y, z)
 
 

@@ -378,3 +378,19 @@ def test_arg_parse_error(args):
     """Helper function raises exception as expected"""
     with pytest.raises(mercantile.TileArgParsingError):
         mercantile._parse_tile_arg(*args)
+
+
+@pytest.mark.parametrize(
+    "t",
+    [
+        mercantile.Tile(x=3413, y=6202, z=14),
+        mercantile.Tile(486, 332, 10),
+        mercantile.Tile(x=69327, y=45014, z=17),
+    ],
+)
+def test_bounding_tile_roundtrip(t):
+    """bounding_tile(bounds(tile)) gives the tile"""
+    val = mercantile.bounding_tile(*mercantile.bounds(t))
+    assert val.x == t.x
+    assert val.y == t.y
+    assert val.z == t.z
