@@ -2,6 +2,9 @@ import warnings
 
 import pytest
 
+from hypothesis import given
+import hypothesis.strategies as st
+
 import mercantile
 
 
@@ -390,7 +393,20 @@ def test_arg_parse_error(args):
 )
 def test_bounding_tile_roundtrip(t):
     """bounding_tile(bounds(tile)) gives the tile"""
+    val = val = mercantile.bounding_tile(*mercantile.bounds(t))
+    assert val.x == t.x
+    assert val.y == t.y
+    assert val.z == t.z
+
+
+@given(
+    x=st.integers(min_value=0, max_value=(2 ** 10 - 1)),
+    y=st.integers(min_value=0, max_value=(2 ** 10 - 1)),
+)
+def test_random_tiles(x, y):
+    t = mercantile.Tile(x=x, y=y, z=10)
     val = mercantile.bounding_tile(*mercantile.bounds(t))
+
     assert val.x == t.x
     assert val.y == t.y
     assert val.z == t.z
