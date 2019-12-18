@@ -36,7 +36,8 @@ __all__ = [
 R2D = 180 / math.pi
 RE = 6378137.0
 CE = 2 * math.pi * RE
-EPSILON = 1e-10
+LL_EPSILON = 1e-13
+XY_EPSILON = 1e-8
 
 
 Tile = namedtuple("Tile", ["x", "y", "z"])
@@ -183,7 +184,7 @@ def bounds(*tile):
     xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
     b = ul(xtile + 1, ytile + 1, zoom)
-    return LngLatBbox(a[0], b[1] + EPSILON, b[0] - EPSILON, a[1])
+    return LngLatBbox(a[0], b[1] + LL_EPSILON, b[0] - LL_EPSILON, a[1])
 
 
 def truncate_lnglat(lng, lat):
@@ -278,10 +279,10 @@ def xy_bounds(*tile):
     tile_size = CE / (2 ** zoom)
 
     left = xtile * tile_size - CE / 2
-    right = left + tile_size - EPSILON
+    right = left + tile_size - XY_EPSILON
 
     top = CE / 2 - ytile * tile_size
-    bottom = top - tile_size + EPSILON
+    bottom = top - tile_size + XY_EPSILON
 
     return Bbox(left, bottom, right, top)
 
