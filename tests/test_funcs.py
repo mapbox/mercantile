@@ -399,12 +399,19 @@ def test_bounding_tile_roundtrip(t):
     assert val.z == t.z
 
 
-@given(
-    x=st.integers(min_value=0, max_value=(2 ** 10 - 1)),
-    y=st.integers(min_value=0, max_value=(2 ** 10 - 1)),
-)
-def test_random_tiles(x, y):
-    t = mercantile.Tile(x=x, y=y, z=10)
+@st.composite
+def random_tiles(draw, elements=st.integers()):
+    z = draw(st.integers(min_value=0, max_value=21))
+    x = draw(st.integers(min_value=0, max_value=2 ** z))
+    y = draw(st.integers(min_value=0, max_value=2 ** z))
+
+    return (x, y, z)
+
+
+@given(random_tiles())
+def test_random_tiles(tile):
+    x, y, z = tile
+    t = mercantile.Tile(x=x, y=y, z=z)
     val = mercantile.bounding_tile(*mercantile.bounds(t))
 
     assert val.x == t.x
