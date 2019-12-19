@@ -36,7 +36,8 @@ __all__ = [
 R2D = 180 / math.pi
 RE = 6378137.0
 CE = 2 * math.pi * RE
-LL_EPSILON = 1e-13
+EPSILON = 1e-14
+LL_EPSILON = 1e-11
 XY_EPSILON = 1e-8
 
 
@@ -155,11 +156,11 @@ def ul(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
-    n = 2.0 ** zoom
-    lon_deg = xtile / n * 360.0 - 180.0
-    lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
+    x = 360 * xtile / math.pow(2, zoom) - 180.0
+    y = math.pi - 2 * math.pi * ytile / math.pow(2, zoom)
+    lat_rad = 2 * math.atan(math.exp(y)) - math.pi / 2
     lat_deg = math.degrees(lat_rad)
-    return LngLat(lon_deg, lat_deg)
+    return LngLat(x, lat_deg)
 
 
 def bounds(*tile):
@@ -276,7 +277,7 @@ def xy_bounds(*tile):
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
 
-    tile_size = CE / (2 ** zoom)
+    tile_size = CE / math.pow(2, zoom)
 
     left = xtile * tile_size - CE / 2
     right = left + tile_size - XY_EPSILON
@@ -287,24 +288,23 @@ def xy_bounds(*tile):
     return Bbox(left, bottom, right, top)
 
 
-def _tile(lng, lat, zoom, truncate=False):
+def _xy(lng, lat, truncate=False):
 
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
 
+    x = lng / 360 + 0.5
     sinlat = math.sin(math.radians(lat))
-    n = 2.0 ** zoom
-    xtile = n * (lng / 360.0 + 0.5)
 
     try:
-        ytile = n * (0.5 - 0.25 * math.log((1.0 + sinlat) / (1.0 - sinlat)) / math.pi)
+        y = 0.5 - 0.25 * math.log((1.0 + sinlat) / (1.0 - sinlat)) / math.pi
     except ValueError:
         raise InvalidLatitudeError(
             "Y can not be computed for latitude {} radians".format(lat)
         )
     else:
-        return xtile, ytile, zoom
-
+        y = y + EPSILON
+        return x, y
 
 def tile(lng, lat, zoom, truncate=False):
     """Get the tile containing a longitude and latitude
@@ -323,9 +323,9 @@ def tile(lng, lat, zoom, truncate=False):
     Tile
 
     """
-    xtile, ytile, zoom = _tile(lng, lat, zoom, truncate=truncate)
-    xtile = int(math.floor(xtile))
-    ytile = int(math.floor(ytile))
+    x, y = _xy(lng, lat, truncate=truncate)
+    xtile = int(math.floor(x * math.pow(2, zoom)))
+    ytile = int(math.floor(y * math.pow(2, zoom)))
     return Tile(xtile, ytile, zoom)
 
 
@@ -433,26 +433,23 @@ def tiles(west, south, east, north, zooms, truncate=False):
         if not isinstance(zooms, Sequence):
             zooms = [zooms]
 
-        epsilon = 1.0e-9
-
         for z in zooms:
-            llx, lly, llz = _tile(w, s, z)
+            x, y = _xy(w, n)
+            ulx = int(math.floor(math.pow(2, z) * x))
+            uly = int(math.floor(math.pow(2, z) * y))
 
-            if lly % 1 < epsilon / 10:
-                lly = lly - epsilon
-
-            urx, ury, urz = _tile(e, n, z)
-            if urx % 1 < epsilon / 10:
-                urx = urx - epsilon
+            x, y = _xy(e, s)
+            lrx = int(math.floor(math.pow(2, z) * x))
+            lry = int(math.floor(math.pow(2, z) * y))
 
             # Clamp left x and top y at 0.
-            llx = 0 if llx < 0 else llx
-            ury = 0 if ury < 0 else ury
+            ulx = 0 if ulx < 0 else ulx
+            uly = 0 if uly < 0 else uly
 
-            llx, urx, lly, ury = map(lambda x: int(math.floor(x)), [llx, urx, lly, ury])
+            minx, miny, maxx, maxy = map(lambda x: int(math.floor(x)), [ulx, uly, lrx, lry])
 
-            for i in range(llx, min(urx + 1, 2 ** z)):
-                for j in range(ury, min(lly + 1, 2 ** z)):
+            for i in range(minx, min(maxx + 1, 2 ** z)):
+                for j in range(miny, min(maxy + 1, 2 ** z)):
                     yield Tile(i, j, z)
 
 
@@ -707,18 +704,22 @@ def feature(
 
     """
     west, south, east, north = bounds(tile)
+
     if projected == "mercator":
         west, south = xy(west, south, truncate=False)
         east, north = xy(east, north, truncate=False)
+
     if buffer:
         west -= buffer
         south -= buffer
         east += buffer
         north += buffer
+
     if precision and precision >= 0:
         west, south, east, north = (
             round(v, precision) for v in (west, south, east, north)
         )
+
     bbox = [min(west, east), min(south, north), max(west, east), max(south, north)]
     geom = {
         "type": "Polygon",
@@ -726,6 +727,7 @@ def feature(
             [[west, south], [west, north], [east, north], [east, south], [west, south]]
         ],
     }
+
     xyz = str(tile)
     feat = {
         "type": "Feature",
@@ -734,8 +736,11 @@ def feature(
         "geometry": geom,
         "properties": {"title": "XYZ tile %s" % xyz},
     }
+
     if props:
         feat["properties"].update(props)
+
     if fid is not None:
         feat["id"] = fid
+
     return feat

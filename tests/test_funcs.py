@@ -1,5 +1,7 @@
 import warnings
 
+from hypothesis import example, given
+from hypothesis.strategies import composite, integers
 import pytest
 
 import mercantile
@@ -77,7 +79,7 @@ def test_lnglat_xy_roundtrip():
     lnglat = (-105.0844, 40.5853)
     roundtrip = mercantile.lnglat(*mercantile.xy(*lnglat))
     for a, b in zip(roundtrip, lnglat):
-        assert round(a - b, 4) == 0
+        assert round(a - b, 7) == 0
 
 
 @pytest.mark.parametrize(
@@ -152,7 +154,7 @@ def test_global_tiles_clamped():
 
 
 @pytest.mark.parametrize(
-    "t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10)]
+    "t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10), mercantile.Tile(10, 10, 10)]
 )
 def test_tiles_roundtrip(t):
     """tiles(bounds(tile)) gives the tile"""
@@ -380,17 +382,30 @@ def test_arg_parse_error(args):
         mercantile._parse_tile_arg(*args)
 
 
-@pytest.mark.parametrize(
-    "t",
-    [
-        mercantile.Tile(x=3413, y=6202, z=14),
-        mercantile.Tile(486, 332, 10),
-        mercantile.Tile(x=69327, y=45014, z=17),
-    ],
-)
+@composite
+def tiles(draw, zooms=integers(min_value=0, max_value=28)):
+    z = draw(zooms)
+    x = draw(integers(min_value=0, max_value=2 ** z - 1))
+    y = draw(integers(min_value=0, max_value=2 ** z - 1))
+    return mercantile.Tile(x, y, z)
+
+
+@given(tiles())
+@example(mercantile.Tile(10, 10, 10))
 def test_bounding_tile_roundtrip(t):
     """bounding_tile(bounds(tile)) gives the tile"""
     val = mercantile.bounding_tile(*mercantile.bounds(t))
     assert val.x == t.x
     assert val.y == t.y
     assert val.z == t.z
+
+
+@given(tiles())
+@example(mercantile.Tile(10, 10, 10))
+def test_ul_tile_roundtrip(t):
+    """ul and tile roundtrip"""
+    lnglat = mercantile.ul(t)
+    tile = mercantile.tile(*lnglat, t.z)
+    assert tile.z == t.z
+    assert tile.x == t.x
+    assert tile.y == t.y
