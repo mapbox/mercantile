@@ -402,8 +402,8 @@ def test_bounding_tile_roundtrip(t):
 @st.composite
 def random_tiles(draw, elements=st.integers()):
     z = draw(st.integers(min_value=0, max_value=21))
-    x = draw(st.integers(min_value=0, max_value=2 ** z))
-    y = draw(st.integers(min_value=0, max_value=2 ** z))
+    x = draw(st.integers(min_value=0, max_value=2 ** z - 1))
+    y = draw(st.integers(min_value=0, max_value=2 ** z - 1))
 
     return (x, y, z)
 
