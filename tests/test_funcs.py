@@ -154,7 +154,12 @@ def test_global_tiles_clamped():
 
 
 @pytest.mark.parametrize(
-    "t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10), mercantile.Tile(10, 10, 10)]
+    "t",
+    [
+        mercantile.Tile(x=3413, y=6202, z=14),
+        mercantile.Tile(486, 332, 10),
+        mercantile.Tile(10, 10, 10),
+    ],
 )
 def test_tiles_roundtrip(t):
     """tiles(bounds(tile)) gives the tile"""

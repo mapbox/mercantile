@@ -38,7 +38,7 @@ setup(
     install_requires=["click>=3.0"],
     extras_require={
         "dev": ["check-manifest"],
-        "test": ["coveralls", "pytest-cov", "pydocstyle"],
+        "test": ["coveralls", "hypothesis", "pytest-cov", "pydocstyle"],
     },
     entry_points="""
       [console_scripts]

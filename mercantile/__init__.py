@@ -306,6 +306,7 @@ def _xy(lng, lat, truncate=False):
         y = y + EPSILON
         return x, y
 
+
 def tile(lng, lat, zoom, truncate=False):
     """Get the tile containing a longitude and latitude
 
@@ -446,7 +447,9 @@ def tiles(west, south, east, north, zooms, truncate=False):
             ulx = 0 if ulx < 0 else ulx
             uly = 0 if uly < 0 else uly
 
-            minx, miny, maxx, maxy = map(lambda x: int(math.floor(x)), [ulx, uly, lrx, lry])
+            minx, miny, maxx, maxy = map(
+                lambda x: int(math.floor(x)), [ulx, uly, lrx, lry]
+            )
 
             for i in range(minx, min(maxx + 1, 2 ** z)):
                 for j in range(miny, min(maxy + 1, 2 ** z)):
