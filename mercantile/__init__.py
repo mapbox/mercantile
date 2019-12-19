@@ -184,7 +184,9 @@ def bounds(*tile):
     xtile, ytile, zoom = tile
     a = ul(xtile, ytile, zoom)
     b = ul(xtile + 1, ytile + 1, zoom)
-    return LngLatBbox(a[0], b[1] + LL_EPSILON, b[0] - LL_EPSILON, a[1])
+    return LngLatBbox(
+        a[0] + LL_EPSILON, b[1] + LL_EPSILON, b[0] - LL_EPSILON, a[1] - LL_EPSILON
+    )
 
 
 def truncate_lnglat(lng, lat):
