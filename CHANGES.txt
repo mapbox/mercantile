@@ -1,8 +1,8 @@
 Changes
 =======
 
-Next
-----
+1.1.3 (TBD)
+-----------
 
 - The implementation of xy_bounds has been simplified and improved.
 - The geographic bounds of a tile have been made slightly smaller by

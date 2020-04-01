@@ -11,7 +11,7 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = "1.1.2"
+__version__ = "1.1.3dev"
 
 __all__ = [
     "Bbox",
