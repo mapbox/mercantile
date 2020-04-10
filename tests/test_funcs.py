@@ -98,7 +98,7 @@ def test_xy_bounds(args):
         assert round(a - b, 7) == 0
 
 
-def test_tile():
+def test_tile_not_truncated():
     tile = mercantile.tile(20.6852, 40.1222, 9)
     expected = (285, 193)
     assert tile[0] == expected[0]
@@ -327,10 +327,18 @@ def test_simplify():
         assert target in simplified
 
 
-def test_bounding_tile():
-    assert mercantile.bounding_tile(-92.5, 0.5, -90.5, 1.5) == (31, 63, 7)
-    assert mercantile.bounding_tile(-90.5, 0.5, -89.5, 0.5) == (0, 0, 1)
-    assert mercantile.bounding_tile(-92, 0, -88, 2) == (0, 0, 0)
+@pytest.mark.parametrize(
+    "bounds,tile",
+    [
+        ((-92.5, 0.5, -90.5, 1.5), (31, 63, 7)),
+        ((-90.5, 0.5, -89.5, 0.5), (0, 0, 1)),
+        ((-92, 0, -88, 2), (0, 0, 1)),
+        ((-92, -2, -88, 2), (0, 0, 0)),
+        ((-92, -2, -88, 0), (0, 1, 1)),
+    ],
+)
+def test_bounding_tile(bounds, tile):
+    assert mercantile.bounding_tile(*bounds) == mercantile.Tile(*tile)
 
 
 def test_overflow_bounding_tile():
@@ -414,3 +422,19 @@ def test_ul_tile_roundtrip(t):
     assert tile.z == t.z
     assert tile.x == t.x
     assert tile.y == t.y
+
+
+@given(tiles())
+@example(mercantile.Tile(10, 10, 10))
+def test_ul_xy_bounds(t):
+    """xy(*ul(t)) will be within 1e-7 of xy_bounds(t)"""
+    assert mercantile.xy(*mercantile.ul(t))[1] == pytest.approx(
+        mercantile.xy_bounds(t).top, abs=1e-7
+    )
+    assert mercantile.xy(*mercantile.ul(t))[0] == pytest.approx(
+        mercantile.xy_bounds(t).left, abs=1e-7
+    )
+
+
+def test_lower_left_tile():
+    assert mercantile.tile(180.0, -85, 1) == mercantile.Tile(1, 1, 1)
