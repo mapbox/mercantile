@@ -6,12 +6,16 @@ import sys
 import warnings
 
 if sys.version_info < (3,):
+    warnings.warn(
+        "Python versions < 3 will not be supported by mercantile 2.0.",
+        DeprecationWarning,
+    )
     from collections import Sequence
 else:
     from collections.abc import Sequence
 
 
-__version__ = "1.1.3dev"
+__version__ = "1.1.3"
 
 __all__ = [
     "Bbox",
@@ -38,7 +42,6 @@ RE = 6378137.0
 CE = 2 * math.pi * RE
 EPSILON = 1e-14
 LL_EPSILON = 1e-11
-XY_EPSILON = 1e-8
 
 
 Tile = namedtuple("Tile", ["x", "y", "z"])
