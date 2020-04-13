@@ -418,7 +418,7 @@ def test_bounding_tile_roundtrip(t):
 def test_ul_tile_roundtrip(t):
     """ul and tile roundtrip"""
     lnglat = mercantile.ul(t)
-    tile = mercantile.tile(*lnglat, t.z)
+    tile = mercantile.tile(lnglat.lng, lnglat.lat, t.z)
     assert tile.z == t.z
     assert tile.x == t.x
     assert tile.y == t.y

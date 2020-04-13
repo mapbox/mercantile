@@ -300,7 +300,7 @@ def _xy(lng, lat, truncate=False):
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
 
-    x = lng / 360 + 0.5
+    x = lng / 360.0 + 0.5
     sinlat = math.sin(math.radians(lat))
 
     try:
