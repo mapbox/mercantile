@@ -11,7 +11,7 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = "1.1.2"
+__version__ = "1.1.3dev"
 
 __all__ = [
     "Bbox",
@@ -32,6 +32,13 @@ __all__ = [
     "ul",
     "xy_bounds",
 ]
+
+R2D = 180 / math.pi
+RE = 6378137.0
+CE = 2 * math.pi * RE
+EPSILON = 1e-14
+LL_EPSILON = 1e-11
+XY_EPSILON = 1e-8
 
 
 Tile = namedtuple("Tile", ["x", "y", "z"])
@@ -98,6 +105,10 @@ class TileArgParsingError(MercantileError):
     """Raised when errors occur in parsing a function's tile arg(s)"""
 
 
+class TileError(MercantileError):
+    """Raised when a tile can't be determined"""
+
+
 def _parse_tile_arg(*args):
     """parse the *tile arg of module functions
 
@@ -149,9 +160,9 @@ def ul(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
-    n = 2.0 ** zoom
-    lon_deg = xtile / n * 360.0 - 180.0
-    lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
+    Z2 = math.pow(2, zoom)
+    lon_deg = xtile / Z2 * 360.0 - 180.0
+    lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / Z2)))
     lat_deg = math.degrees(lat_rad)
     return LngLat(lon_deg, lat_deg)
 
@@ -167,6 +178,11 @@ def bounds(*tile):
     Returns
     -------
     LngLatBBox
+
+    Notes
+    -----
+    Epsilon is subtracted from the right limit and added to the bottom
+    limit.
 
     """
     tile = _parse_tile_arg(*tile)
@@ -207,13 +223,16 @@ def xy(lng, lat, truncate=False):
     """
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
-    x = 6378137.0 * math.radians(lng)
+
+    x = RE * math.radians(lng)
+
     if lat <= -90:
         y = float("-inf")
     elif lat >= 90:
         y = float("inf")
     else:
-        y = 6378137.0 * math.log(math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
+        y = RE * math.log(math.tan((math.pi * 0.25) + (0.5 * math.radians(lat))))
+
     return x, y
 
 
@@ -232,11 +251,9 @@ def lnglat(x, y, truncate=False):
     LngLat
 
     """
-    R2D = 180 / math.pi
-    A = 6378137.0
     lng, lat = (
-        x * R2D / A,
-        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / A))) * R2D,
+        x * R2D / RE,
+        ((math.pi * 0.5) - 2.0 * math.atan(math.exp(-y / RE))) * R2D,
     )
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
@@ -255,31 +272,40 @@ def xy_bounds(*tile):
     -------
     Bbox
 
+    Notes
+    -----
+    Epsilon is subtracted from the right limit and added to the bottom
+    limit.
+
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
-    left, top = xy(*ul(xtile, ytile, zoom))
-    right, bottom = xy(*ul(xtile + 1, ytile + 1, zoom))
+
+    tile_size = CE / math.pow(2, zoom)
+
+    left = xtile * tile_size - CE / 2
+    right = left + tile_size
+
+    top = CE / 2 - ytile * tile_size
+    bottom = top - tile_size
+
     return Bbox(left, bottom, right, top)
 
 
-def _tile(lng, lat, zoom, truncate=False):
+def _xy(lng, lat, truncate=False):
+
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
-    lat = math.radians(lat)
-    n = 2.0 ** zoom
-    xtile = (lng + 180.0) / 360.0 * n
+
+    x = lng / 360 + 0.5
+    sinlat = math.sin(math.radians(lat))
 
     try:
-        ytile = (
-            (1.0 - math.log(math.tan(lat) + (1.0 / math.cos(lat))) / math.pi) / 2.0 * n
-        )
+        y = 0.5 - 0.25 * math.log((1.0 + sinlat) / (1.0 - sinlat)) / math.pi
     except ValueError:
-        raise InvalidLatitudeError(
-            "Y can not be computed for latitude {} radians".format(lat)
-        )
+        raise InvalidLatitudeError("Y can not be computed: lat={!r}".format(lat))
     else:
-        return xtile, ytile, zoom
+        return x, y
 
 
 def tile(lng, lat, zoom, truncate=False):
@@ -299,9 +325,35 @@ def tile(lng, lat, zoom, truncate=False):
     Tile
 
     """
-    xtile, ytile, zoom = _tile(lng, lat, zoom, truncate=truncate)
-    xtile = int(math.floor(xtile))
-    ytile = int(math.floor(ytile))
+    x, y = _xy(lng, lat, truncate=truncate)
+    Z2 = math.pow(2, zoom)
+
+    if x <= 0:
+        xtile = 0
+    elif x >= 1:
+        xtile = int(Z2 - 1)
+    else:
+        # Heuristic to find points straddling tiles.
+        xtile_a = math.floor((x - EPSILON) * Z2)
+        xtile_b = math.floor((x + EPSILON) * Z2)
+        if xtile_a != xtile_b:
+            xtile = int(xtile_b)
+        else:
+            xtile = int(xtile_a)
+
+    if y <= 0:
+        ytile = 0
+    elif y >= 1:
+        ytile = int(Z2 - 1)
+    else:
+        # Heuristic to find points straddling tiles.
+        ytile_a = math.floor((y + EPSILON) * Z2)
+        ytile_b = math.floor((y - EPSILON) * Z2)
+        if ytile_a != ytile_b:
+            ytile = int(ytile_a)
+        else:
+            ytile = int(ytile_b)
+
     return Tile(xtile, ytile, zoom)
 
 
@@ -399,7 +451,6 @@ def tiles(west, south, east, north, zooms, truncate=False):
         bboxes = [(west, south, east, north)]
 
     for w, s, e, n in bboxes:
-
         # Clamp bounding values.
         w = max(-180.0, w)
         s = max(-85.051129, s)
@@ -409,26 +460,12 @@ def tiles(west, south, east, north, zooms, truncate=False):
         if not isinstance(zooms, Sequence):
             zooms = [zooms]
 
-        epsilon = 1.0e-9
-
         for z in zooms:
-            llx, lly, llz = _tile(w, s, z)
+            ul_tile = tile(w, n, z)
+            lr_tile = tile(e - LL_EPSILON, s + LL_EPSILON, z)
 
-            if lly % 1 < epsilon / 10:
-                lly = lly - epsilon
-
-            urx, ury, urz = _tile(e, n, z)
-            if urx % 1 < epsilon / 10:
-                urx = urx - epsilon
-
-            # Clamp left x and top y at 0.
-            llx = 0 if llx < 0 else llx
-            ury = 0 if ury < 0 else ury
-
-            llx, urx, lly, ury = map(lambda x: int(math.floor(x)), [llx, urx, lly, ury])
-
-            for i in range(llx, min(urx + 1, 2 ** z)):
-                for j in range(ury, min(lly + 1, 2 ** z)):
+            for i in range(ul_tile.x, lr_tile.x + 1):
+                for j in range(ul_tile.y, lr_tile.y + 1):
                     yield Tile(i, j, z)
 
 
@@ -619,25 +656,33 @@ def bounding_tile(*bbox, **kwds):
     """
     if len(bbox) == 2:
         bbox += bbox
+
     w, s, e, n = bbox
+
     truncate = bool(kwds.get("truncate"))
+
     if truncate:
         w, s = truncate_lnglat(w, s)
         e, n = truncate_lnglat(e, n)
-    # Algorithm ported directly from https://github.com/mapbox/tilebelt.
+
+    e = e - LL_EPSILON
+    s = s + LL_EPSILON
 
     try:
-        tmin = tile(w, s, 32, truncate=truncate)
-        tmax = tile(e, n, 32, truncate=truncate)
+        tmin = tile(w, n, 32)
+        tmax = tile(e, s, 32)
     except InvalidLatitudeError:
         return Tile(0, 0, 0)
 
     cell = tmin[:2] + tmax[:2]
     z = _getBboxZoom(*cell)
+
     if z == 0:
         return Tile(0, 0, 0)
+
     x = rshift(cell[0], (32 - z))
     y = rshift(cell[1], (32 - z))
+
     return Tile(x, y, z)
 
 
@@ -678,18 +723,22 @@ def feature(
 
     """
     west, south, east, north = bounds(tile)
+
     if projected == "mercator":
         west, south = xy(west, south, truncate=False)
         east, north = xy(east, north, truncate=False)
+
     if buffer:
         west -= buffer
         south -= buffer
         east += buffer
         north += buffer
+
     if precision and precision >= 0:
         west, south, east, north = (
             round(v, precision) for v in (west, south, east, north)
         )
+
     bbox = [min(west, east), min(south, north), max(west, east), max(south, north)]
     geom = {
         "type": "Polygon",
@@ -697,6 +746,7 @@ def feature(
             [[west, south], [west, north], [east, north], [east, south], [west, south]]
         ],
     }
+
     xyz = str(tile)
     feat = {
         "type": "Feature",
@@ -705,8 +755,11 @@ def feature(
         "geometry": geom,
         "properties": {"title": "XYZ tile %s" % xyz},
     }
+
     if props:
         feat["properties"].update(props)
+
     if fid is not None:
         feat["id"] = fid
+
     return feat

@@ -68,3 +68,6 @@ venv2/
 
 .DS_Store
 .pytest_cache
+package-lock.json
+node_modules
+.hypothesis

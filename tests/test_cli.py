@@ -1,6 +1,7 @@
 """Tests of the mercantile CLI"""
 
 from click.testing import CliRunner
+import pytest
 
 from mercantile.scripts import cli
 
@@ -318,7 +319,8 @@ def test_cli_tiles_point_geojson():
 def test_cli_quadkey_failure():
     """Abort when an invalid quadkey is passed"""
     runner = CliRunner()
-    result = runner.invoke(cli, ["quadkey", "lolwut"])
+    with pytest.warns(DeprecationWarning):
+        result = runner.invoke(cli, ["quadkey", "lolwut"])
     assert result.exit_code == 2
     assert "lolwut" in result.output
 

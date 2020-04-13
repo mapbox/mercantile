@@ -1,17 +1,13 @@
-sudo: false
 language: python
+dist: xenial
 python:
-  - "2.7"
   - "3.5"
   - "3.6"
-# Enable 3.7 without globally enabling sudo and dist: xenial for other build jobs
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
+  - "3.7"
+  - "3.8"
 install:
   - "pip install -r requirements.txt"
+  - "pip install pytest-cov~=2.8 pytest~=5.3.0"
   - "pip install -e .[test]"
 script:
   - "python -m pytest --cov mercantile --cov-report term-missing"

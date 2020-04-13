@@ -1,5 +1,7 @@
 import warnings
 
+from hypothesis import example, given
+from hypothesis.strategies import composite, integers
 import pytest
 
 import mercantile
@@ -77,7 +79,7 @@ def test_lnglat_xy_roundtrip():
     lnglat = (-105.0844, 40.5853)
     roundtrip = mercantile.lnglat(*mercantile.xy(*lnglat))
     for a, b in zip(roundtrip, lnglat):
-        assert round(a - b, 4) == 0
+        assert round(a - b, 7) == 0
 
 
 @pytest.mark.parametrize(
@@ -96,7 +98,7 @@ def test_xy_bounds(args):
         assert round(a - b, 7) == 0
 
 
-def test_tile():
+def test_tile_not_truncated():
     tile = mercantile.tile(20.6852, 40.1222, 9)
     expected = (285, 193)
     assert tile[0] == expected[0]
@@ -152,7 +154,12 @@ def test_global_tiles_clamped():
 
 
 @pytest.mark.parametrize(
-    "t", [mercantile.Tile(x=3413, y=6202, z=14), mercantile.Tile(486, 332, 10)]
+    "t",
+    [
+        mercantile.Tile(x=3413, y=6202, z=14),
+        mercantile.Tile(486, 332, 10),
+        mercantile.Tile(10, 10, 10),
+    ],
 )
 def test_tiles_roundtrip(t):
     """tiles(bounds(tile)) gives the tile"""
@@ -320,10 +327,18 @@ def test_simplify():
         assert target in simplified
 
 
-def test_bounding_tile():
-    assert mercantile.bounding_tile(-92.5, 0.5, -90.5, 1.5) == (31, 63, 7)
-    assert mercantile.bounding_tile(-90.5, 0.5, -89.5, 0.5) == (0, 0, 1)
-    assert mercantile.bounding_tile(-92, 0, -88, 2) == (0, 0, 0)
+@pytest.mark.parametrize(
+    "bounds,tile",
+    [
+        ((-92.5, 0.5, -90.5, 1.5), (31, 63, 7)),
+        ((-90.5, 0.5, -89.5, 0.5), (0, 0, 1)),
+        ((-92, 0, -88, 2), (0, 0, 1)),
+        ((-92, -2, -88, 2), (0, 0, 0)),
+        ((-92, -2, -88, 0), (0, 1, 1)),
+    ],
+)
+def test_bounding_tile(bounds, tile):
+    assert mercantile.bounding_tile(*bounds) == mercantile.Tile(*tile)
 
 
 def test_overflow_bounding_tile():
@@ -378,3 +393,48 @@ def test_arg_parse_error(args):
     """Helper function raises exception as expected"""
     with pytest.raises(mercantile.TileArgParsingError):
         mercantile._parse_tile_arg(*args)
+
+
+@composite
+def tiles(draw, zooms=integers(min_value=0, max_value=28)):
+    z = draw(zooms)
+    x = draw(integers(min_value=0, max_value=2 ** z - 1))
+    y = draw(integers(min_value=0, max_value=2 ** z - 1))
+    return mercantile.Tile(x, y, z)
+
+
+@given(tiles())
+@example(mercantile.Tile(10, 10, 10))
+def test_bounding_tile_roundtrip(t):
+    """bounding_tile(bounds(tile)) gives the tile"""
+    val = mercantile.bounding_tile(*mercantile.bounds(t))
+    assert val.x == t.x
+    assert val.y == t.y
+    assert val.z == t.z
+
+
+@given(tiles())
+@example(mercantile.Tile(10, 10, 10))
+def test_ul_tile_roundtrip(t):
+    """ul and tile roundtrip"""
+    lnglat = mercantile.ul(t)
+    tile = mercantile.tile(*lnglat, t.z)
+    assert tile.z == t.z
+    assert tile.x == t.x
+    assert tile.y == t.y
+
+
+@given(tiles())
+@example(mercantile.Tile(10, 10, 10))
+def test_ul_xy_bounds(t):
+    """xy(*ul(t)) will be within 1e-7 of xy_bounds(t)"""
+    assert mercantile.xy(*mercantile.ul(t))[1] == pytest.approx(
+        mercantile.xy_bounds(t).top, abs=1e-7
+    )
+    assert mercantile.xy(*mercantile.ul(t))[0] == pytest.approx(
+        mercantile.xy_bounds(t).left, abs=1e-7
+    )
+
+
+def test_lower_left_tile():
+    assert mercantile.tile(180.0, -85, 1) == mercantile.Tile(1, 1, 1)
