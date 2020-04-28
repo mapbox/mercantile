@@ -8,14 +8,14 @@ import warnings
 if sys.version_info < (3,):
     warnings.warn(
         "Python versions < 3 will not be supported by mercantile 2.0.",
-        DeprecationWarning,
+        UserWarning,
     )
     from collections import Sequence
 else:
     from collections.abc import Sequence
 
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 
 __all__ = [
     "Bbox",
@@ -305,7 +305,7 @@ def _xy(lng, lat, truncate=False):
 
     try:
         y = 0.5 - 0.25 * math.log((1.0 + sinlat) / (1.0 - sinlat)) / math.pi
-    except ValueError:
+    except (ValueError, ZeroDivisionError):
         raise InvalidLatitudeError("Y can not be computed: lat={!r}".format(lat))
     else:
         return x, y

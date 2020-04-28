@@ -438,3 +438,36 @@ def test_ul_xy_bounds(t):
 
 def test_lower_left_tile():
     assert mercantile.tile(180.0, -85, 1) == mercantile.Tile(1, 1, 1)
+
+
+@pytest.mark.parametrize("lat", [-90.0, 90.0])
+def test_tile_poles(lat):
+    with pytest.raises(mercantile.InvalidLatitudeError):
+        mercantile.tile(0.0, lat, zoom=17)
+
+
+@pytest.mark.parametrize("lat", [-90.0, 90.0])
+def test__xy_poles(lat):
+    with pytest.raises(mercantile.InvalidLatitudeError):
+        mercantile._xy(0.0, lat)
+
+
+@pytest.mark.parametrize("lat,fy", [(85.0511287798066, 0.0), (-85.0511287798066, 1.0)])
+def test__xy_limits(lat, fy):
+    x, y = mercantile._xy(0.0, lat)
+    assert x == 0.5
+    assert y == pytest.approx(fy)
+
+
+@pytest.mark.parametrize("lat", [86.0])
+def test__xy_north_of_limit(lat):
+    x, y = mercantile._xy(0.0, lat)
+    assert x == 0.5
+    assert y < 0
+
+
+@pytest.mark.parametrize("lat", [-86.0])
+def test__xy_south_of_limit(lat):
+    x, y = mercantile._xy(0.0, lat)
+    assert x == 0.5
+    assert y > 1
