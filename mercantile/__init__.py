@@ -624,8 +624,7 @@ def simplify(tiles):
     root_set = set()
     for tile in tiles:
         x, y, z = tile
-        supers = [parent(tile, zoom=i) for i in range(z + 1)]
-        for supertile in supers:
+        for supertile in (parent(tile, zoom=i) for i in range(z + 1)):
             if supertile in root_set:
                 continue
         root_set |= {tile}
