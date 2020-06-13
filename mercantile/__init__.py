@@ -4,6 +4,7 @@ from collections import namedtuple
 import math
 import sys
 import warnings
+import operator
 
 if sys.version_info < (3,):
     warnings.warn(
@@ -620,14 +621,18 @@ def simplify(tiles):
         return current_tileset, changed
 
     # Check to see if a tile and its parent both already exist.
+    # Ensure that tiles are sorted by zoom so parents are encountered first.
     # If so, discard the child (it's covered in the parent)
     root_set = set()
-    for tile in tiles:
+    for tile in sorted(tiles, key=operator.itemgetter(2)):
         x, y, z = tile
+        is_new_tile = True
         for supertile in (parent(tile, zoom=i) for i in range(z + 1)):
             if supertile in root_set:
+                is_new_tile = False
                 continue
-        root_set |= {tile}
+        if is_new_tile:
+            root_set |= {tile}
 
     # Repeatedly run merge until no further simplification is possible.
     is_merging = True
