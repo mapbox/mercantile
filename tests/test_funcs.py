@@ -327,6 +327,20 @@ def test_simplify():
         assert target in simplified
 
 
+def test_simplify_removal():
+    ''' Verify that tiles are being removed by simplify()
+    '''
+    tiles = [
+        (1298, 3129, 13),
+        (649, 1564, 12),
+        (650, 1564, 12),
+        ]
+    simplified = mercantile.simplify(tiles)
+    assert (1298, 3129, 13) not in simplified, 'Tile covered by a parent'
+    assert (650, 1564, 12) in simplified, 'Highest-level tile'
+    assert (649, 1564, 12) in simplified, 'Also highest-level tile'
+
+
 @pytest.mark.parametrize(
     "bounds,tile",
     [
