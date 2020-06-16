@@ -16,7 +16,7 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = "1.1.4"
+__version__ = "1.1.5dev"
 
 __all__ = [
     "Bbox",
@@ -337,26 +337,17 @@ def tile(lng, lat, zoom, truncate=False):
     elif x >= 1:
         xtile = int(Z2 - 1)
     else:
-        # Heuristic to find points straddling tiles.
-        xtile_a = math.floor((x - EPSILON) * Z2)
-        xtile_b = math.floor((x + EPSILON) * Z2)
-        if xtile_a != xtile_b:
-            xtile = int(xtile_b)
-        else:
-            xtile = int(xtile_a)
+        # To address loss of precision in round-tripping between tile
+        # and lng/lat, points within EPSILON of the right side of a tile
+        # are counted in the next tile over.
+        xtile = math.floor((x + EPSILON) * Z2)
 
     if y <= 0:
         ytile = 0
     elif y >= 1:
         ytile = int(Z2 - 1)
     else:
-        # Heuristic to find points straddling tiles.
-        ytile_a = math.floor((y + EPSILON) * Z2)
-        ytile_b = math.floor((y - EPSILON) * Z2)
-        if ytile_a != ytile_b:
-            ytile = int(ytile_a)
-        else:
-            ytile = int(ytile_b)
+        ytile = math.floor((y + EPSILON) * Z2)
 
     return Tile(xtile, ytile, zoom)
 
