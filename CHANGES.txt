@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.1.6 (2020-08-24)
+------------------
+
+- In some cases tile() could return a Tile with float x or y attributes (#115).
+  This is a new bug in 1.1.5 and breaks some user code on Python 2.7 and is now
+  fixed.
+
 1.1.5 (2020-06-16)
 ------------------
 
