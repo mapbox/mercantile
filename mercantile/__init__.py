@@ -16,7 +16,7 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = "1.1.5"
+__version__ = "1.1.6dev"
 
 __all__ = [
     "Bbox",
@@ -340,14 +340,14 @@ def tile(lng, lat, zoom, truncate=False):
         # To address loss of precision in round-tripping between tile
         # and lng/lat, points within EPSILON of the right side of a tile
         # are counted in the next tile over.
-        xtile = math.floor((x + EPSILON) * Z2)
+        xtile = int(math.floor((x + EPSILON) * Z2))
 
     if y <= 0:
         ytile = 0
     elif y >= 1:
         ytile = int(Z2 - 1)
     else:
-        ytile = math.floor((y + EPSILON) * Z2)
+        ytile = int(math.floor((y + EPSILON) * Z2))
 
     return Tile(xtile, ytile, zoom)
 
