@@ -457,7 +457,7 @@ def children(ctx, input, depth):
     https://tools.ietf.org/html/rfc8142 and
     https://tools.ietf.org/html/rfc7159).
 
-    $ echo "[486, 332, 10]" | mercantile parent
+    $ echo "[486, 332, 10]" | mercantile children
 
     Output:
 
