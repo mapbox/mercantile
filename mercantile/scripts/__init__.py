@@ -509,6 +509,42 @@ def parent(ctx, input, depth):
         output = json.dumps(tile)
         click.echo(output)
 
+# The neighbors command.
+@cli.command(short_help="Print the neighbors of the tile.")
+@click.argument("input", default="-", required=False)
+@click.pass_context
+def neighbors(ctx, input):
+    """Takes [x, y, z] tiles as input and writes adjacent
+    tiles on the same zoom level to stdout in the same form.
+
+    There are no ordering guarantees for the output tiles.
+
+    Input may be a compact newline-delimited sequences of JSON or
+    a pretty-printed ASCII RS-delimited sequence of JSON (like
+    https://tools.ietf.org/html/rfc8142 and
+    https://tools.ietf.org/html/rfc7159).
+
+    $ echo "[486, 332, 10]" | mercantile neighbors
+
+    Output:
+
+    [485, 331, 10]
+    [485, 332, 10]
+    [485, 333, 10]
+    [486, 331, 10]
+    [486, 333, 10]
+    [487, 331, 10]
+    [487, 332, 10]
+    [487, 333, 10]
+    """
+    src = normalize_input(input)
+    for line in iter_lines(src):
+        tile = json.loads(line)[:3]
+        tiles = mercantile.neighbors(tile)
+        for t in tiles:
+            output = json.dumps(t)
+            click.echo(output)
+
 
 @cli.command(short_help="Convert to/from quadkeys.")
 @click.argument("input", default="-", required=False)

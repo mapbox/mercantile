@@ -1,5 +1,7 @@
 """Tests of the mercantile CLI"""
 
+import json
+
 from click.testing import CliRunner
 import pytest
 
@@ -282,6 +284,30 @@ def test_cli_children():
         result.output
         == "[486, 332, 10]\n[487, 332, 10]\n[487, 333, 10]\n[486, 333, 10]\n"
     )
+
+
+def test_cli_neighbors():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["neighbors"], "[243, 166, 9]")
+    assert result.exit_code == 0
+
+    tiles = result.output.strip().split("\n")
+    tiles = [json.loads(t) for t in tiles]
+    assert len(tiles) == 8
+
+    # We do not provide ordering guarantees
+    tiles = set([tuple(t) for t in tiles])
+
+    assert (243, 166, 9) not in tiles, "input not in neighbors"
+
+    assert (243 - 1, 166 - 1, 9) in tiles
+    assert (243 - 1, 166 + 0, 9) in tiles
+    assert (243 - 1, 166 + 1, 9) in tiles
+    assert (243 + 0, 166 - 1, 9) in tiles
+    assert (243 + 0, 166 + 1, 9) in tiles
+    assert (243 + 1, 166 - 1, 9) in tiles
+    assert (243 + 1, 166 + 0, 9) in tiles
+    assert (243 + 1, 166 + 1, 9) in tiles
 
 
 def test_cli_strict_overlap_contain():
