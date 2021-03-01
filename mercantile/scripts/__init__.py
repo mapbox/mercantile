@@ -465,7 +465,6 @@ def children(ctx, input, depth):
     """
     src = normalize_input(input)
     for line in iter_lines(src):
-        line = line.strip()
         tiles = [json.loads(line)[:3]]
         for i in range(depth):
             tiles = sum([mercantile.children(t) for t in tiles], [])
