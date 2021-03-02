@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.1.7 (2021-03-01)
+------------------
+
+- Add ``x_minmax``, ` `y_minmax`` to get min/max x and y tile coordinates
+
 1.1.6 (2020-08-24)
 ------------------
 
