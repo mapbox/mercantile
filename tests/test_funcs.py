@@ -7,6 +7,32 @@ import pytest
 import mercantile
 
 
+def test_invalid_tile():
+    with pytest.raises(mercantile.TileArgParsingError) as e:
+        mercantile._parse_tile_arg(0, 0, -1)
+    assert "must be a positive int" in str(e.value)
+
+    with pytest.raises(mercantile.TileArgParsingError) as e:
+        mercantile._parse_tile_arg(0, 0, 0.5)
+    assert "must be a positive int" in str(e.value)
+
+    with pytest.raises(mercantile.TileArgParsingError) as e:
+        mercantile._parse_tile_arg(0.5, 0, 0)
+    assert "must be an int" in str(e.value)
+
+    with pytest.raises(mercantile.TileArgParsingError) as e:
+        mercantile._parse_tile_arg(0, 0.5, 0)
+    assert "must be an int" in str(e.value)
+
+    with pytest.raises(mercantile.TileArgParsingError) as e:
+        mercantile._parse_tile_arg(1, 1, 0)
+    assert "must be an integer in" in str(e.value)
+
+    with pytest.raises(mercantile.TileArgParsingError) as e:
+        mercantile._parse_tile_arg(0, (2 ** 10 - 1) + 1, 10)
+    assert "must be an integer in" in str(e.value)
+
+
 @pytest.mark.parametrize(
     "args", [(486, 332, 10), [(486, 332, 10)], [mercantile.Tile(486, 332, 10)]]
 )
@@ -224,6 +250,16 @@ def test_parent_multi():
     assert parent.z == 8
 
 
+def test_parent_same_zoom():
+    with pytest.raises(mercantile.InvalidZoomError):
+        parent = mercantile.parent(486, 332, 10, zoom=10)
+
+
+def test_parent_root_tile():
+    with pytest.raises(mercantile.ParentTileError):
+        parent = mercantile.parent(0, 0, 0)
+
+
 def test_children():
     x, y, z = 243, 166, 9
     children = mercantile.children(x, y, z)
@@ -291,9 +327,9 @@ def test_child_bad_tile_zoom():
 
 
 def test_parent_fractional_tile():
-    with pytest.raises(mercantile.ParentTileError) as e:
+    with pytest.raises(mercantile.TileArgParsingError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=1)
-    assert "the parent of a non-integer tile is undefined" in str(e.value)
+    assert "must be an int" in str(e.value)
 
 
 def test_parent_fractional_zoom():
@@ -303,9 +339,9 @@ def test_parent_fractional_zoom():
 
 
 def test_parent_bad_tile_zoom():
-    with pytest.raises(mercantile.InvalidZoomError) as e:
+    with pytest.raises(mercantile.TileArgParsingError) as e:
         mercantile.parent((243.3, 166.2, 9), zoom=10)
-    assert "zoom must be an integer and less than" in str(e.value)
+    assert "must be an int" in str(e.value)
 
 
 def test_simplify():

@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.1.7 (2021-03-01)
+------------------
+
+- Add tile pre-conditions and input validation (#122)
+
 1.1.6 (2020-08-24)
 ------------------
 

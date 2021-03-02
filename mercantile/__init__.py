@@ -133,7 +133,20 @@ def _parse_tile_arg(*args):
     if len(args) == 1:
         args = args[0]
     if len(args) == 3:
-        return Tile(*args)
+        tile = Tile(*args)
+
+        xtile, ytile, zoom = tile
+
+        if zoom != int(zoom) or not int(zoom) >= 0:
+            raise TileArgParsingError("zoom must be a positive integer")
+
+        if xtile != int(xtile) or not (0 <= int(xtile) <= (2 ** zoom - 1)):
+            raise TileArgParsingError("x must be an integer in [0, 2 ** z - 1]")
+
+        if ytile != int(ytile) or not (0 <= int(ytile) <= (2 ** zoom - 1)):
+            raise TileArgParsingError("y must be an integer in [0, 2 ** z - 1]")
+
+        return tile
     else:
         raise TileArgParsingError(
             "the tile argument may have 1 or 3 values. Note that zoom is a keyword-only argument"
@@ -191,8 +204,13 @@ def bounds(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
+
+    # TODO: b gets constructed as potentially invalid Tile
+    # e.g. (1,1,0) is invalid, as is (1, 2, 1)
+
     a = ul(xtile, ytile, zoom)
     b = ul(xtile + 1, ytile + 1, zoom)
+
     return LngLatBbox(a[0], b[1], b[0], a[1])
 
 
@@ -494,17 +512,18 @@ def parent(*tile, **kwargs):
     """
     tile = _parse_tile_arg(*tile)
 
+    x, y, z = tile
+
+    if z == 0:
+        raise ParentTileError("root tile does not have a parent")
+
     # zoom is a keyword-only argument.
     zoom = kwargs.get("zoom", None)
 
-    if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
+    if zoom is not None and (z <= zoom or zoom != int(zoom)):
         raise InvalidZoomError(
             "zoom must be an integer and less than that of the input tile"
         )
-
-    x, y, z = tile
-    if x != int(x) or y != int(y) or z != int(z):
-        raise ParentTileError("the parent of a non-integer tile is undefined")
 
     target_zoom = z - 1 if zoom is None else zoom
 
@@ -618,7 +637,7 @@ def simplify(tiles):
     for tile in sorted(tiles, key=operator.itemgetter(2)):
         x, y, z = tile
         is_new_tile = True
-        for supertile in (parent(tile, zoom=i) for i in range(z + 1)):
+        for supertile in (parent(tile, zoom=i) for i in range(z)):
             if supertile in root_set:
                 is_new_tile = False
                 continue
