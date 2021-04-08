@@ -28,23 +28,7 @@ def configure_logging(verbosity):
 
 logger = logging.getLogger(__name__)
 
-
-def coords(obj):
-    """Yield all coordinate coordinate tuples from a geometry or feature.
-    From python-geojson package."""
-    if isinstance(obj, (tuple, list)):
-        coordinates = obj
-    elif "geometry" in obj:
-        coordinates = obj["geometry"]["coordinates"]
-    else:
-        coordinates = obj.get("coordinates", obj)
-    for e in coordinates:
-        if isinstance(e, (float, int)):
-            yield tuple(coordinates)
-            break
-        else:
-            for f in coords(e):
-                yield f
+RS = u"\x1e"
 
 
 def normalize_input(input):
@@ -229,7 +213,7 @@ def shapes(
             click.echo(" ".join(map(str, bbox)))
         else:
             if seq:
-                click.echo(u"\x1e")
+                click.echo(RS)
             if output_mode == "bbox":
                 click.echo(json.dumps(bbox, **dump_kwds))
             elif output_mode == "feature":
@@ -288,15 +272,15 @@ def tiles(ctx, zoom, input, seq):
     first_line = next(src)
 
     # If input is RS-delimited JSON sequence.
-    if first_line.startswith(u"\x1e"):
+    if first_line.startswith(RS):
 
         def feature_gen():
-            buffer = first_line.strip(u"\x1e")
+            buffer = first_line.strip(RS)
             for line in src:
-                if line.startswith(u"\x1e"):
+                if line.startswith(RS):
                     if buffer:
                         yield json.loads(buffer)
-                    buffer = line.strip(u"\x1e")
+                    buffer = line.strip(RS)
                 else:
                     buffer += line
             else:
@@ -309,14 +293,12 @@ def tiles(ctx, zoom, input, seq):
             for line in src:
                 yield json.loads(line)
 
-    source = feature_gen()
-    # Detect the input format
-    for obj in source:
+    for obj in feature_gen():
         if isinstance(obj, list):
             bbox = obj
             if len(bbox) == 2:
                 bbox += bbox
-            if len(bbox) != 4:
+            elif len(bbox) != 4:
                 raise click.BadParameter(
                     "{0}".format(bbox), param=input, param_hint="input"
                 )
@@ -324,13 +306,8 @@ def tiles(ctx, zoom, input, seq):
             if "bbox" in obj:
                 bbox = obj["bbox"]
             else:
-                box_xs = []
-                box_ys = []
-                for feat in obj.get("features", [obj]):
-                    lngs, lats = zip(*list(coords(feat)))
-                    box_xs.extend([min(lngs), max(lngs)])
-                    box_ys.extend([min(lats), max(lats)])
-                bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
+                bbox = mercantile.geojson_bounds(obj)
+
         west, south, east, north = bbox
         epsilon = 1.0e-10
 
@@ -347,7 +324,7 @@ def tiles(ctx, zoom, input, seq):
             vals = (tile.x, tile.y, zoom)
             output = json.dumps(vals)
             if seq:
-                click.echo(u"\x1e")
+                click.echo(RS)
             click.echo(output)
 
 
@@ -387,15 +364,15 @@ def bounding_tile(ctx, input, seq):
     first_line = next(src)
 
     # If input is RS-delimited JSON sequence.
-    if first_line.startswith(u"\x1e"):
+    if first_line.startswith(RS):
 
         def feature_gen():
-            buffer = first_line.strip(u"\x1e")
+            buffer = first_line.strip(RS)
             for line in src:
-                if line.startswith(u"\x1e"):
+                if line.startswith(RS):
                     if buffer:
                         yield json.loads(buffer)
-                    buffer = line.strip(u"\x1e")
+                    buffer = line.strip(RS)
                 else:
                     buffer += line
             else:
@@ -408,33 +385,30 @@ def bounding_tile(ctx, input, seq):
             for line in src:
                 yield json.loads(line)
 
-    source = feature_gen()
-    # Detect the input format
-    for obj in source:
+    for obj in feature_gen():
+
         if isinstance(obj, list):
             bbox = obj
             if len(bbox) == 2:
                 bbox += bbox
-            if len(bbox) != 4:
+            elif len(bbox) != 4:
                 raise click.BadParameter(
                     "{0}".format(bbox), param=input, param_hint="input"
                 )
+
         elif isinstance(obj, dict):
             if "bbox" in obj:
                 bbox = obj["bbox"]
             else:
-                box_xs = []
-                box_ys = []
-                for feat in obj.get("features", [obj]):
-                    lngs, lats = zip(*list(coords(feat)))
-                    box_xs.extend([min(lngs), max(lngs)])
-                    box_ys.extend([min(lats), max(lats)])
-                bbox = min(box_xs), min(box_ys), max(box_xs), max(box_ys)
+                bbox = mercantile.geojson_bounds(obj)
+
         west, south, east, north = bbox
         vals = mercantile.bounding_tile(west, south, east, north, truncate=False)
         output = json.dumps(vals)
+
         if seq:
-            click.echo(u"\x1e")
+            click.echo(RS)
+
         click.echo(output)
 
 
