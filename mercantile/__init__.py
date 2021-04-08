@@ -28,6 +28,7 @@ __all__ = [
     "children",
     "feature",
     "lnglat",
+    "neighbors"
     "parent",
     "quadkey",
     "quadkey_to_tile",
@@ -262,6 +263,57 @@ def lnglat(x, y, truncate=False):
     if truncate:
         lng, lat = truncate_lnglat(lng, lat)
     return LngLat(lng, lat)
+
+
+def neighbors(*tile, **kwargs):
+    """Get the neighbors of a tile
+
+    The neighbors function makes no guarantees regarding neighbor tile ordering.
+
+    The neighbors function returns up to eight neighboring tiles, where tiles
+    will be omitted when they are not valid e.g. Tile(-1, -1, z).
+
+
+    Parameters
+    ----------
+    tile : Tile or sequence of int
+        May be be either an instance of Tile or 3 ints, X, Y, Z.
+
+    Returns
+    -------
+    list
+
+    Examples
+    --------
+
+    >>> neighbors(Tile(486, 332, 10))
+    [Tile(x=485, y=331, z=10), Tile(x=485, y=332, z=10), Tile(x=485, y=333, z=10), Tile(x=486, y=331, z=10), Tile(x=486, y=333, z=10), Tile(x=487, y=331, z=10), Tile(x=487, y=332, z=10), Tile(x=487, y=333, z=10)]
+
+    """
+    tile = _parse_tile_arg(*tile)
+
+    xtile, ytile, ztile = tile
+
+    tiles = []
+
+    for i in [-1, 0, 1]:
+        for j in [-1, 0, 1]:
+            if i == 0 and j == 0:
+                continue
+
+            tiles.append(Tile(x=xtile + i, y=ytile + j, z=ztile))
+
+    # Make sure to not generate invalid tiles for valid input
+    # https://github.com/mapbox/mercantile/issues/122
+    def valid(tile):
+        validx = 0 <= tile.x <= 2 ** tile.z - 1
+        validy = 0 <= tile.y <= 2 ** tile.z - 1
+        validz = 0 <= tile.z
+        return validx and validy and validz
+
+    tiles = [t for t in tiles if valid(t)]
+
+    return tiles
 
 
 def xy_bounds(*tile):
