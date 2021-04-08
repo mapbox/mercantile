@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.1.7 (2021-03-01)
+1.2.0 (2021-04-08)
 ------------------
 
 - Add ``x_minmax``, ` `y_minmax`` to get min/max x and y tile coordinates
@@ -211,4 +211,3 @@ Thanks to all contributors (see AUTHORS.txt), users, and testers, Mercantile
 0.1 (2014-03-26)
 ----------------
 - Added mercantile.tool script for use with geojsonio-cli.
-
