@@ -546,3 +546,18 @@ def test_xy_minmax():
 
         assert nx == 2 ** z
         assert ny == 2 ** z
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        {"features": [{"geometry": {"coordinates": (1, 2)}}]},
+        {"geometry": {"coordinates": (1, 2)}},
+        {"coordinates": (1, 2)},
+        {"coordinates": [(1, 2)]},
+        (1, 2),
+        [(1, 2)],
+    ],
+)
+def test_coords(obj):
+    assert list(mercantile._coords(obj)) == [(1, 2)]
