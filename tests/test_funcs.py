@@ -308,6 +308,28 @@ def test_parent_bad_tile_zoom():
     assert "zoom must be an integer and less than" in str(e.value)
 
 
+def test_neighbors():
+    x, y, z = 243, 166, 9
+    tiles = mercantile.neighbors(x, y, z)
+    assert len(tiles) == 8
+    assert all(t.z == z for t in tiles)
+    assert all(t.x - x in (-1, 0, 1) for t in tiles)
+    assert all(t.y - y in (-1, 0, 1) for t in tiles)
+
+def test_neighbors_invalid():
+    x, y, z = 0, 166, 9
+    tiles = mercantile.neighbors(x, y, z)
+    assert len(tiles) == 8 - 3  # no top-left, left, bottom-left
+    assert all(t.z == z for t in tiles)
+    assert all(t.x - x in (-1, 0, 1) for t in tiles)
+    assert all(t.y - y in (-1, 0, 1) for t in tiles)
+
+def test_neighbors_invalid():
+    x, y, z = 0, 0, 0
+    tiles = mercantile.neighbors(x, y, z)
+    assert len(tiles) == 0  # root tile has no neighbors
+
+
 def test_simplify():
     children = mercantile.children(243, 166, 9, zoom=12)
     assert len(children) == 64

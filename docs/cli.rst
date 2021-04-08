@@ -17,6 +17,7 @@ Command line interface
       bounding-tile  Print the bounding tile of a lng/lat point, bounding box, or
                      GeoJSON objects.
       children       Print the children of the tile.
+      neighbors      Print the neighbors of the tile.
       parent         Print the parent tile.
       quadkey        Convert to/from quadkeys.
       shapes         Print the shapes of tiles as GeoJSON.

@@ -4,7 +4,8 @@ Changes
 1.2.0 (2021-04-08)
 ------------------
 
-- Add ``x_minmax``, ` `y_minmax`` to get min/max x and y tile coordinates
+- Add ``x_minmax``, ` `y_minmax`` to get min/max x and y tile coordinates.
+- Add ``neighbors`` function and command to get adjacent tiles (#118).
 
 1.1.6 (2020-08-24)
 ------------------
