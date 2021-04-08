@@ -507,3 +507,42 @@ def test__xy_south_of_limit(lat):
     x, y = mercantile._xy(0.0, lat)
     assert x == 0.5
     assert y > 1
+
+
+def test_x_minmax():
+    assert mercantile.x_minmax(zoom=0) == (0, 0)
+    assert mercantile.x_minmax(zoom=1) == (0, 1)
+
+    for z in range(0, 28):
+        xmin, xmax = mercantile.x_minmax(z)
+
+        assert xmin == 0
+        assert xmax >= 0
+        assert xmax == 2 ** z - 1
+
+
+def test_y_minmax():
+    assert mercantile.y_minmax(zoom=0) == (0, 0)
+    assert mercantile.y_minmax(zoom=1) == (0, 1)
+
+    for z in range(0, 28):
+        ymin, ymax = mercantile.y_minmax(z)
+
+        assert ymin == 0
+        assert ymax >= 0
+        assert ymax == 2 ** z - 1
+
+
+def test_xy_minmax():
+    for z in range(0, 28):
+        xmin, xmax = mercantile.x_minmax(z)
+        ymin, ymax = mercantile.y_minmax(z)
+
+        assert xmin == 0
+        assert ymin == 0
+
+        nx = xmin + xmax + 1
+        ny = ymin + ymax + 1
+
+        assert nx == 2 ** z
+        assert ny == 2 ** z

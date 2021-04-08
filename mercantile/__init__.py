@@ -37,7 +37,10 @@ __all__ = [
     "tiles",
     "ul",
     "xy_bounds",
+    "x_minmax",
+    "y_minmax",
 ]
+
 
 R2D = 180 / math.pi
 RE = 6378137.0
@@ -813,3 +816,60 @@ def feature(
         feat["id"] = fid
 
     return feat
+
+
+def x_minmax(zoom):
+    """Returns the min and max x tile coordinates for a specific zoom level
+
+    Parameters
+    ----------
+    zoom : int
+        The web mercator zoom level.
+
+    Returns
+    -------
+    Tuple of (min, max)
+
+    """
+
+    return (0, 2 ** zoom - 1)
+
+
+def x_minmax(zoom):
+    """Returns the min and max x tile coordinates for a specific zoom level
+
+    Parameters
+    ----------
+    zoom : int
+        The web mercator zoom level.
+
+    Returns
+    -------
+    Tuple of (min, max) integers
+
+    """
+
+    if zoom != int(zoom) or int(zoom) < 0:
+        raise InvalidZoomError("zoom must be a positive integer")
+
+    return (0, 2 ** zoom - 1)
+
+
+def y_minmax(zoom):
+    """Returns the min and max y tile coordinates for a specific zoom level
+
+    Parameters
+    ----------
+    zoom : int
+        The web mercator zoom level.
+
+    Returns
+    -------
+    Tuple of (min, max) integers
+
+    """
+
+    if zoom != int(zoom) or int(zoom) < 0:
+        raise InvalidZoomError("zoom must be a positive integer")
+
+    return (0, 2 ** zoom - 1)
