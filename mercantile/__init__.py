@@ -38,8 +38,7 @@ __all__ = [
     "tiles",
     "ul",
     "xy_bounds",
-    "x_minmax",
-    "y_minmax",
+    "minmax",
 ]
 
 
@@ -265,7 +264,7 @@ def lnglat(x, y, truncate=False):
 
 
 def neighbors(*tile, **kwargs):
-    """Get the neighbors of a tile
+    """The neighbors of a tile
 
     The neighbors function makes no guarantees regarding neighbor tile ordering.
 
@@ -284,7 +283,6 @@ def neighbors(*tile, **kwargs):
 
     Examples
     --------
-
     >>> neighbors(Tile(486, 332, 10))
     [Tile(x=485, y=331, z=10), Tile(x=485, y=332, z=10), Tile(x=485, y=333, z=10), Tile(x=486, y=331, z=10), Tile(x=486, y=333, z=10), Tile(x=487, y=331, z=10), Tile(x=487, y=332, z=10), Tile(x=487, y=333, z=10)]
 
@@ -584,19 +582,24 @@ def children(*tile, **kwargs):
     tile : Tile or sequence of int
         May be be either an instance of Tile or 3 ints, X, Y, Z.
     zoom : int, optional
-        Returns all children at zoom *zoom*, in depth-first clockwise winding order.
-        If unspecified, returns the immediate (i.e. zoom + 1) children of the tile.
+        Returns all children at zoom *zoom*, in depth-first clockwise
+        winding order.  If unspecified, returns the immediate (i.e. zoom
+        + 1) children of the tile.
 
     Returns
     -------
     list
 
+    Raises
+    ------
+    InvalidZoomError
+        If the zoom level is not an integer greater than the zoom level
+        of the input tile.
+
     Examples
     --------
-
     >>> children(Tile(0, 0, 0))
     [Tile(x=0, y=0, z=1), Tile(x=0, y=1, z=1), Tile(x=1, y=0, z=1), Tile(x=1, y=1, z=1)]
-
     >>> children(Tile(0, 0, 0), zoom=2)
     [Tile(x=0, y=0, z=2), Tile(x=0, y=1, z=2), Tile(x=0, y=2, z=2), Tile(x=0, y=3, z=2), ...]
 
@@ -616,6 +619,7 @@ def children(*tile, **kwargs):
     target_zoom = zoom if zoom is not None else ztile + 1
 
     tiles = [tile]
+
     while tiles[0][2] < target_zoom:
         xtile, ytile, ztile = tiles.pop(0)
         tiles += [
@@ -624,6 +628,7 @@ def children(*tile, **kwargs):
             Tile(xtile * 2 + 1, ytile * 2 + 1, ztile + 1),
             Tile(xtile * 2, ytile * 2 + 1, ztile + 1),
         ]
+
     return tiles
 
 
@@ -866,8 +871,8 @@ def geojson_bounds(obj):
     return LngLatBbox(w, s, e, n)
 
 
-def x_minmax(zoom):
-    """Returns the min and max x tile coordinates for a specific zoom level
+def minmax(zoom):
+    """Minimum and maximum tile coordinates for a zoom level
 
     Parameters
     ----------
@@ -876,48 +881,28 @@ def x_minmax(zoom):
 
     Returns
     -------
-    Tuple of (min, max)
+    minimum : int
+        Minimum tile coordinate (note: always 0).
+    maximum : int
+        Maximum tile coordinate (2 ** zoom - 1).
+
+    Raises
+    ------
+    InvalidZoomError
+        If zoom level is not a positive integer.
+
+    Examples
+    --------
+    >>> minmax(1)
+    (0, 1)
+    >>> minmax(-1)
+    Traceback (most recent call last):
+    ...
+    InvalidZoomError: zoom must be a positive integer
 
     """
 
-    return (0, 2 ** zoom - 1)
-
-
-def x_minmax(zoom):
-    """Returns the min and max x tile coordinates for a specific zoom level
-
-    Parameters
-    ----------
-    zoom : int
-        The web mercator zoom level.
-
-    Returns
-    -------
-    Tuple of (min, max) integers
-
-    """
-
-    if zoom != int(zoom) or int(zoom) < 0:
-        raise InvalidZoomError("zoom must be a positive integer")
-
-    return (0, 2 ** zoom - 1)
-
-
-def y_minmax(zoom):
-    """Returns the min and max y tile coordinates for a specific zoom level
-
-    Parameters
-    ----------
-    zoom : int
-        The web mercator zoom level.
-
-    Returns
-    -------
-    Tuple of (min, max) integers
-
-    """
-
-    if zoom != int(zoom) or int(zoom) < 0:
+    if not isinstance(zoom, int) or zoom < 0:
         raise InvalidZoomError("zoom must be a positive integer")
 
     return (0, 2 ** zoom - 1)
