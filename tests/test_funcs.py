@@ -527,3 +527,42 @@ def test_minmax_error(z):
     """Get an exception when zoom is invalid"""
     with pytest.raises(mercantile.InvalidZoomError):
         mercantile.minmax(z)
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        {"features": [{"geometry": {"coordinates": (1, 2)}}]},
+        {"geometry": {"coordinates": (1, 2)}},
+        {"coordinates": (1, 2)},
+        {"coordinates": [(1, 2)]},
+        (1, 2),
+        [(1, 2)],
+    ],
+)
+def test_coords(obj):
+    """Get coordinates of mock geojson objects"""
+    assert list(mercantile._coords(obj)) == [(1, 2)]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        {
+            "features": [
+                {"geometry": {"coordinates": (1, 2)}},
+                {"geometry": {"coordinates": (-1, -2)}},
+            ]
+        },
+        {"geometry": {"coordinates": [(1, 2), (-1, -2)]}},
+        {"coordinates": [(1, 2), (-1, -2)]},
+        [(1, 2), (-1, -2)],
+    ],
+)
+def test_geojson_bounds(obj):
+    """Get bounds of mock geojson objects"""
+    bbox = mercantile.geojson_bounds(obj)
+    assert bbox.west == -1.0
+    assert bbox.south == -2.0
+    assert bbox.east == 1.0
+    assert bbox.north == 2.0

@@ -1,6 +1,7 @@
 """Web mercator XYZ tile utilities"""
 
 from collections import namedtuple
+from functools import reduce
 import math
 import sys
 import warnings
@@ -16,7 +17,7 @@ else:
     from collections.abc import Sequence
 
 
-__version__ = "1.2.0dev"
+__version__ = "1.2dev"
 
 __all__ = [
     "Bbox",
@@ -179,17 +180,12 @@ def bounds(*tile):
 
     Parameters
     ----------
-    tile : Tile or sequence of int
-        May be be either an instance of Tile or 3 ints, X, Y, Z.
+    tile : Tile or tuple
+        May be be either an instance of Tile or 3 ints (X, Y, Z).
 
     Returns
     -------
-    LngLatBBox
-
-    Notes
-    -----
-    Epsilon is subtracted from the right limit and added to the bottom
-    limit.
+    LngLatBbox
 
     """
     tile = _parse_tile_arg(*tile)
@@ -823,6 +819,58 @@ def feature(
     return feat
 
 
+def _coords(obj):
+    """All coordinate tuples from a geometry or feature or collection
+
+    Yields
+    ------
+    lng : float
+        Longitude
+    lat : float
+        Latitude
+
+    """
+    if isinstance(obj, (tuple, list)):
+        coordinates = obj
+    elif "features" in obj:
+        coordinates = [feat["geometry"]["coordinates"] for feat in obj["features"]]
+    elif "geometry" in obj:
+        coordinates = obj["geometry"]["coordinates"]
+    else:
+        coordinates = obj.get("coordinates", obj)
+
+    for e in coordinates:
+        if isinstance(e, (float, int)):
+            yield tuple(coordinates)
+            break
+        else:
+            for f in _coords(e):
+                yield f[:2]
+
+
+def geojson_bounds(obj):
+    """Returns the bounding box of a GeoJSON object
+
+    Parameters
+    ----------
+    obj : mapping
+        A GeoJSON geometry, feature, or feature collection.
+
+    Returns
+    -------
+    LngLatBbox
+
+    """
+
+    def func(bbox, coords):
+        w, s, e, n = bbox
+        lng, lat = coords
+        return min(w, lng), min(s, lat), max(e, lng), max(n, lat)
+
+    w, s, e, n = reduce(func, _coords(obj), (180.0, 90.0, -180.0, -90.0))
+    return LngLatBbox(w, s, e, n)
+
+
 def minmax(zoom):
     """Minimum and maximum tile coordinates for a zoom level
 
@@ -854,7 +902,7 @@ def minmax(zoom):
 
     """
 
-    if not isinstance(zoom, int) or int(zoom) < 0:
+    if not isinstance(zoom, int) or zoom < 0:
         raise InvalidZoomError("zoom must be a positive integer")
 
     return (0, 2 ** zoom - 1)
