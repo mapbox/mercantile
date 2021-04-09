@@ -4,6 +4,13 @@ Changes
 1.2a1 (2021-04-12)
 ------------------
 
+Deprecations and future warnings:
+
+- The Tile constructor in mercantile 2.0 will refuse to make tiles with X and Y
+  indexes outside of the range (0, 2 ** zoom).
+
+New features:
+
 - Add ``geojson_bounds`` to get the bounding box of a GeoJSON geometry,
   feature, or collection (#119).
 - Add ``x_minmax``, ` `y_minmax`` to get min/max x and y tile coordinates.
