@@ -60,6 +60,7 @@ class Tile(namedtuple("Tile", ["x", "y", "z"])):
     """
 
     def __new__(cls, x, y, z):
+        """A new instance"""
         lo, hi = minmax(z)
         if not lo <= x <= hi or not lo <= y <= hi:
             warnings.warn(
