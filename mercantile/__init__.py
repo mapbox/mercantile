@@ -13,8 +13,19 @@ if sys.version_info < (3,):
         UserWarning,
     )
     from collections import Sequence
+
+    def lru_cache(maxsize=None):
+        """Does nothing. We do not cache for Python < 3."""
+
+        def fake_decorator(func):
+            return func
+
+        return fake_decorator
+
+
 else:
     from collections.abc import Sequence
+    from functools import lru_cache
 
 
 __version__ = "1.2dev"
@@ -286,11 +297,11 @@ def lnglat(x, y, truncate=False):
 def neighbors(*tile, **kwargs):
     """The neighbors of a tile
 
-    The neighbors function makes no guarantees regarding neighbor tile ordering.
+    The neighbors function makes no guarantees regarding neighbor tile
+    ordering.
 
-    The neighbors function returns up to eight neighboring tiles, where tiles
-    will be omitted when they are not valid e.g. Tile(-1, -1, z).
-
+    The neighbors function returns up to eight neighboring tiles, where
+    tiles will be omitted when they are not valid e.g. Tile(-1, -1, z).
 
     Parameters
     ----------
@@ -307,9 +318,7 @@ def neighbors(*tile, **kwargs):
     [Tile(x=485, y=331, z=10), Tile(x=485, y=332, z=10), Tile(x=485, y=333, z=10), Tile(x=486, y=331, z=10), Tile(x=486, y=333, z=10), Tile(x=487, y=331, z=10), Tile(x=487, y=332, z=10), Tile(x=487, y=333, z=10)]
 
     """
-    tile = _parse_tile_arg(*tile)
-
-    xtile, ytile, ztile = tile
+    xtile, ytile, ztile = _parse_tile_arg(*tile)
 
     tiles = []
 
@@ -897,6 +906,7 @@ def geojson_bounds(obj):
     return LngLatBbox(w, s, e, n)
 
 
+@lru_cache(maxsize=28)
 def minmax(zoom):
     """Minimum and maximum tile coordinates for a zoom level
 
@@ -928,7 +938,10 @@ def minmax(zoom):
 
     """
 
-    if not isinstance(zoom, int) or zoom < 0:
+    try:
+        if int(zoom) != zoom or zoom < 0:
+            raise InvalidZoomError("zoom must be a positive integer")
+    except ValueError:
         raise InvalidZoomError("zoom must be a positive integer")
 
     return (0, 2 ** zoom - 1)
