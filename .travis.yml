@@ -22,4 +22,4 @@ deploy:
     tags: true
   provider: pypi
   distributions: "sdist bdist_wheel"
-  user: "@token"
+  user: __token__

@@ -4,6 +4,10 @@ Changes
 1.2a1 (2021-04-12)
 ------------------
 
+Project infrastructure changes:
+
+- Default GitHub branch is now "main".
+
 Deprecations and future warnings:
 
 - The Tile constructor in mercantile 2.0 will refuse to make tiles with X and Y
