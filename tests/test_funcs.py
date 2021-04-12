@@ -205,6 +205,10 @@ def test_quadkey_failure(recwarn):
     assert recwarn.pop(DeprecationWarning)
 
 
+def test_root_parent():
+    assert mercantile.parent(0, 0, 0) is None
+
+
 @pytest.mark.parametrize("args", [(486, 332, 10, 9), ((486, 332, 10), 9)])
 def test_parent_invalid_args(args):
     """tile arg must have length 1 or 3"""
@@ -316,6 +320,7 @@ def test_neighbors():
     assert all(t.x - x in (-1, 0, 1) for t in tiles)
     assert all(t.y - y in (-1, 0, 1) for t in tiles)
 
+
 def test_neighbors_invalid():
     x, y, z = 0, 166, 9
     tiles = mercantile.neighbors(x, y, z)
@@ -324,7 +329,8 @@ def test_neighbors_invalid():
     assert all(t.x - x in (-1, 0, 1) for t in tiles)
     assert all(t.y - y in (-1, 0, 1) for t in tiles)
 
-def test_neighbors_invalid():
+
+def test_root_neighbors_invalid():
     x, y, z = 0, 0, 0
     tiles = mercantile.neighbors(x, y, z)
     assert len(tiles) == 0  # root tile has no neighbors
@@ -566,3 +572,9 @@ def test_geojson_bounds(obj):
     assert bbox.south == -2.0
     assert bbox.east == 1.0
     assert bbox.north == 2.0
+
+
+@pytest.mark.parametrize("x,y", [(0, 1), (1, 0), (-1, 0), (0, -1)])
+def test_xy_future_warnings(x, y):
+    with pytest.warns(FutureWarning):
+        mercantile.Tile(x, y, 0)

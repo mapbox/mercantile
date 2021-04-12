@@ -13,8 +13,19 @@ if sys.version_info < (3,):
         UserWarning,
     )
     from collections import Sequence
+
+    def lru_cache(maxsize=None):
+        """Does nothing. We do not cache for Python < 3."""
+
+        def fake_decorator(func):
+            return func
+
+        return fake_decorator
+
+
 else:
     from collections.abc import Sequence
+    from functools import lru_cache
 
 
 __version__ = "1.2dev"
@@ -49,14 +60,25 @@ EPSILON = 1e-14
 LL_EPSILON = 1e-11
 
 
-Tile = namedtuple("Tile", ["x", "y", "z"])
-"""An XYZ web mercator tile
+class Tile(namedtuple("Tile", ["x", "y", "z"])):
+    """An XYZ web mercator tile
 
-Attributes
-----------
-x, y, z : int
-    x and y indexes of the tile and zoom level z.
-"""
+    Attributes
+    ----------
+    x, y, z : int
+        x and y indexes of the tile and zoom level z.
+
+    """
+
+    def __new__(cls, x, y, z):
+        """A new instance"""
+        lo, hi = minmax(z)
+        if not lo <= x <= hi or not lo <= y <= hi:
+            warnings.warn(
+                "Mercantile 2.0 will require tile x and y to be within the range (0, 2 ** zoom)",
+                FutureWarning,
+            )
+        return tuple.__new__(cls, [x, y, z])
 
 
 LngLat = namedtuple("LngLat", ["lng", "lat"])
@@ -190,9 +212,18 @@ def bounds(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
-    a = ul(xtile, ytile, zoom)
-    b = ul(xtile + 1, ytile + 1, zoom)
-    return LngLatBbox(a[0], b[1], b[0], a[1])
+
+    Z2 = math.pow(2, zoom)
+
+    ul_lon_deg = xtile / Z2 * 360.0 - 180.0
+    ul_lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / Z2)))
+    ul_lat_deg = math.degrees(ul_lat_rad)
+
+    lr_lon_deg = (xtile + 1) / Z2 * 360.0 - 180.0
+    lr_lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * (ytile + 1) / Z2)))
+    lr_lat_deg = math.degrees(lr_lat_rad)
+
+    return LngLatBbox(ul_lon_deg, lr_lat_deg, lr_lon_deg, ul_lat_deg)
 
 
 def truncate_lnglat(lng, lat):
@@ -266,11 +297,11 @@ def lnglat(x, y, truncate=False):
 def neighbors(*tile, **kwargs):
     """The neighbors of a tile
 
-    The neighbors function makes no guarantees regarding neighbor tile ordering.
+    The neighbors function makes no guarantees regarding neighbor tile
+    ordering.
 
-    The neighbors function returns up to eight neighboring tiles, where tiles
-    will be omitted when they are not valid e.g. Tile(-1, -1, z).
-
+    The neighbors function returns up to eight neighboring tiles, where
+    tiles will be omitted when they are not valid e.g. Tile(-1, -1, z).
 
     Parameters
     ----------
@@ -287,17 +318,20 @@ def neighbors(*tile, **kwargs):
     [Tile(x=485, y=331, z=10), Tile(x=485, y=332, z=10), Tile(x=485, y=333, z=10), Tile(x=486, y=331, z=10), Tile(x=486, y=333, z=10), Tile(x=487, y=331, z=10), Tile(x=487, y=332, z=10), Tile(x=487, y=333, z=10)]
 
     """
-    tile = _parse_tile_arg(*tile)
-
-    xtile, ytile, ztile = tile
+    xtile, ytile, ztile = _parse_tile_arg(*tile)
 
     tiles = []
+
+    lo, hi = minmax(ztile)
 
     for i in [-1, 0, 1]:
         for j in [-1, 0, 1]:
             if i == 0 and j == 0:
                 continue
-
+            elif xtile + i < 0 or ytile + j < 0:
+                continue
+            elif xtile + i > hi or ytile + j > hi:
+                continue
             tiles.append(Tile(x=xtile + i, y=ytile + j, z=ztile))
 
     # Make sure to not generate invalid tiles for valid input
@@ -533,25 +567,26 @@ def parent(*tile, **kwargs):
 
     Examples
     --------
-
     >>> parent(Tile(0, 0, 2))
     Tile(x=0, y=0, z=1)
-
     >>> parent(Tile(0, 0, 2), zoom=0)
     Tile(x=0, y=0, z=0)
 
     """
     tile = _parse_tile_arg(*tile)
+    x, y, z = tile
+
+    if z == 0:
+        return None
 
     # zoom is a keyword-only argument.
     zoom = kwargs.get("zoom", None)
 
-    if zoom is not None and (tile[2] < zoom or zoom != int(zoom)):
+    if zoom is not None and (z <= zoom or zoom != int(zoom)):
         raise InvalidZoomError(
             "zoom must be an integer and less than that of the input tile"
         )
 
-    x, y, z = tile
     if x != int(x) or y != int(y) or z != int(z):
         raise ParentTileError("the parent of a non-integer tile is undefined")
 
@@ -674,7 +709,7 @@ def simplify(tiles):
     for tile in sorted(tiles, key=operator.itemgetter(2)):
         x, y, z = tile
         is_new_tile = True
-        for supertile in (parent(tile, zoom=i) for i in range(z + 1)):
+        for supertile in (parent(tile, zoom=i) for i in range(z)):
             if supertile in root_set:
                 is_new_tile = False
                 continue
@@ -871,6 +906,7 @@ def geojson_bounds(obj):
     return LngLatBbox(w, s, e, n)
 
 
+@lru_cache(maxsize=28)
 def minmax(zoom):
     """Minimum and maximum tile coordinates for a zoom level
 
@@ -902,7 +938,10 @@ def minmax(zoom):
 
     """
 
-    if not isinstance(zoom, int) or zoom < 0:
+    try:
+        if int(zoom) != zoom or zoom < 0:
+            raise InvalidZoomError("zoom must be a positive integer")
+    except ValueError:
         raise InvalidZoomError("zoom must be a positive integer")
 
     return (0, 2 ** zoom - 1)
