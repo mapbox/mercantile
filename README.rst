@@ -99,3 +99,6 @@ provides many of the same features for Node.
 
 `tilebelt <https://github.com/mapbox/tilebelt>`__ has some of the GeoJSON
 features as mercantile and a few more (tile parents, quadkey).
+
+`morecantile <https://github.com/developmentseed/morecantile>`__ is like mercantile,
+but with support for other TileMatrixSet grids.
