@@ -28,7 +28,7 @@ else:
     from functools import lru_cache
 
 
-__version__ = "1.2b1"
+__version__ = "1.2.0"
 
 __all__ = [
     "Bbox",
