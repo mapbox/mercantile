@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.2.0 (2021-04-19)
+------------------
+
+- Copyright holder and date (Mapbox, 2021) have been updated.
+- CLI help and documentation has been updated.
+
 1.2b1 (2021-04-14)
 ------------------
 

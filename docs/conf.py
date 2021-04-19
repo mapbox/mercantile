@@ -53,7 +53,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "Mercantile"
-copyright = "2017, Sean C. Gillies"
+copyright = "2021, Mapbox"
 author = "Sean C. Gillies"
 
 # The version info for the project you're documenting, acts as replacement for
