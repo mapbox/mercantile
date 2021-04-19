@@ -1,19 +1,19 @@
-Sean Gillies <sean@mapbox.com>
-Matthew Perry <perrygeo@gmail.com>
-Felix Jung <jung@posteo.de>
-Patrick M Young <patrick.mckendree.young@gmail.com>
-Amit Kapadia <akapad@gmail.com>
-Brendan Ward <bcward@consbio.org>
-Sam Murphy <samsammurphy@gmail.com>
-dnomadb <damon@mapbox.com>
-Andrew Harvey <andrew@alantgeo.com.au>
-Daniel J. H <daniel+github@trvx.org>
-Jacob Wasserman <jwasserman@gmail.com>
-James Gill <jagill@users.noreply.github.com>
-Jeremiah Cooper <JCooper@jeremiahcooper.com>
-Michal Migurski <mike-github@teczno.com>
-Patrick Young <patrick.mckendree.young@gmail.com>
-Rohit Singh <singhrohit2@hotmail.com>
-Stefano Costa <steko@iosa.it>
-drnextgis <rykovd@gmail.com>
-jqtrde <hi@jacquestardie.org>
+Sean Gillies
+Matthew Perry
+Patrick M Young
+Felix Jung
+Amit Kapadia
+Daniel J. H
+Brendan Ward
+Sam Murphy
+dnomadb
+Andrew Harvey
+Jacob Wasserman
+James Gill
+Jeremiah Cooper
+Michal Migurski
+Pratik Yadav
+Rohit Singh
+Stefano Costa
+drnextgis
+jqtrde

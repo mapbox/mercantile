@@ -71,3 +71,4 @@ venv2/
 package-lock.json
 node_modules
 .hypothesis
+.mailmap

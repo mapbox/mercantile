@@ -1,13 +1,6 @@
 mercantile package
 ==================
 
-Subpackages
------------
-
-.. toctree::
-
-    mercantile.scripts
-
 Module contents
 ---------------
 
@@ -16,3 +9,11 @@ Module contents
     :undoc-members:
     :show-inheritance:
     :member-order: groupwise
+
+Subpackages
+-----------
+
+.. toctree::
+
+    mercantile.scripts
+

@@ -64,7 +64,6 @@ def cli(ctx, verbose, quiet):
 
 # Commands are below.
 
-
 # The shapes command.
 @cli.command(short_help="Print the shapes of tiles as GeoJSON.")
 # This input is either a filename, stdin, or a string.
@@ -152,10 +151,7 @@ def shapes(
     buffer,
 ):
 
-    """Reads one or more Web Mercator tile descriptions
-    from stdin and writes either a GeoJSON feature collection (the
-    default) or a JSON sequence of GeoJSON features/collections to
-    stdout.
+    """Print tiles as GeoJSON feature collections or sequences.
 
     Input may be a compact newline-delimited sequences of JSON or
     a pretty-printed ASCII RS-delimited sequence of JSON (like
@@ -169,6 +165,13 @@ def shapes(
 
     In the latter case, the properties object will be used to update
     the properties object of the output feature.
+
+	Example:
+
+	\b
+	echo "[486, 332, 10]" | mercantile shapes --precision 4 --bbox
+	[-9.1406, 53.1204, -8.7891, 53.3309]
+
     """
     dump_kwds = {"sort_keys": True}
     if indent:
@@ -258,10 +261,8 @@ def tiles(ctx, zoom, input, seq):
 
     Example:
 
+    \b
     $ echo "[-105.05, 39.95, -105, 40]" | mercantile tiles 12
-
-    Output:
-
     [852, 1550, 12]
     [852, 1551, 12]
     [853, 1550, 12]
@@ -354,11 +355,10 @@ def bounding_tile(ctx, input, seq):
 
     Example:
 
-    $ echo "[-105.05, 39.95, -105, 40]" | mercantile bounding-tile
-
-    Output:
-
+    \b
+    echo "[-105.05, 39.95, -105, 40]" | mercantile bounding-tile
     [426, 775, 11]
+
     """
     src = iter(normalize_input(input))
     first_line = next(src)
@@ -431,11 +431,15 @@ def children(ctx, input, depth):
     https://tools.ietf.org/html/rfc8142 and
     https://tools.ietf.org/html/rfc7159).
 
-    $ echo "[486, 332, 10]" | mercantile children
+    Example:
 
-    Output:
+    \b
+    echo "[486, 332, 10]" | mercantile children
+    [972, 664, 11]
+    [973, 664, 11]
+    [973, 665, 11]
+    [972, 665, 11]
 
-    [243, 166, 9]
     """
     src = normalize_input(input)
     for line in iter_lines(src):
@@ -466,11 +470,12 @@ def parent(ctx, input, depth):
     https://tools.ietf.org/html/rfc8142 and
     https://tools.ietf.org/html/rfc7159).
 
-    $ echo "[486, 332, 10]" | mercantile parent
+    Example:
 
-    Output:
-
+    \b
+    echo "[486, 332, 10]" | mercantile parent
     [243, 166, 9]
+
     """
     src = normalize_input(input)
     for line in iter_lines(src):
@@ -481,6 +486,7 @@ def parent(ctx, input, depth):
             tile = mercantile.parent(tile)
         output = json.dumps(tile)
         click.echo(output)
+
 
 # The neighbors command.
 @cli.command(short_help="Print the neighbors of the tile.")
@@ -497,10 +503,10 @@ def neighbors(ctx, input):
     https://tools.ietf.org/html/rfc8142 and
     https://tools.ietf.org/html/rfc7159).
 
-    $ echo "[486, 332, 10]" | mercantile neighbors
+    Example:
 
-    Output:
-
+    \b
+    echo "[486, 332, 10]" | mercantile neighbors
     [485, 331, 10]
     [485, 332, 10]
     [485, 333, 10]
@@ -509,6 +515,7 @@ def neighbors(ctx, input):
     [487, 331, 10]
     [487, 332, 10]
     [487, 333, 10]
+
     """
     src = normalize_input(input)
     for line in iter_lines(src):
@@ -531,17 +538,16 @@ def quadkey(ctx, input):
     https://tools.ietf.org/html/rfc8142 and
     https://tools.ietf.org/html/rfc7159).
 
-    $ echo "[486, 332, 10]" | mercantile quadkey
+    Examples:
 
-    Output:
-
+    \b
+    echo "[486, 332, 10]" | mercantile quadkey
     0313102310
 
-    $ echo "0313102310" | mercantile quadkey
-
-    Output:
-
+    \b
+    echo "0313102310" | mercantile quadkey
     [486, 332, 10]
+
     """
     src = normalize_input(input)
     try:
