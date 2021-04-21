@@ -28,7 +28,7 @@ else:
     from functools import lru_cache
 
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 __all__ = [
     "Bbox",
@@ -40,7 +40,7 @@ __all__ = [
     "children",
     "feature",
     "lnglat",
-    "neighbors"
+    "neighbors",
     "parent",
     "quadkey",
     "quadkey_to_tile",

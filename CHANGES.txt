@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.2.1 (2021-04-21)
+------------------
+
+- A missing comma in the ``__all__`` list caused the neighbors and parent
+  method to drop out of the module documentation (#135).
+
 1.2.0 (2021-04-19)
 ------------------
 
