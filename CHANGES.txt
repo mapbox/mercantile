@@ -33,6 +33,8 @@ Deprecations and future warnings:
 
 New features:
 
+- Moved the ``coords()`` function in mercantile/script/__init__.py to
+  ``_coords()`` in mercantile/__init__.py to support ``geojson_bounds`` (#119).
 - Add ``geojson_bounds`` to get the bounding box of a GeoJSON geometry,
   feature, or collection (#119).
 - Add ``minmax`` to get minimum and maximum x and y tile coordinates.
