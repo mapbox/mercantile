@@ -2,8 +2,8 @@
 Mercantile
 ==========
 
-.. image:: https://travis-ci.com/mapbox/mercantile.svg
-   :target: https://travis-ci.com/mapbox/mercantile
+.. image:: https://app.travis-ci.com/mapbox/mercantile.svg?branch=main
+   :target: https://app.travis-ci.com/mapbox/mercantile
    :alt: Build Status
 
 .. image:: https://coveralls.io/repos/github/mapbox/mercantile/badge.svg?branch=master
