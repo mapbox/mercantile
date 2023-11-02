@@ -77,7 +77,7 @@ mercator tile of any resolution that completely contains the input.
 
 .. code-block:: console
 
-	$ mercantile bounding-box --help
+	$ mercantile bounding-tile --help
 	Usage: mercantile bounding-tile [OPTIONS] [INPUT]
 
 	  Print the Web Mercator tile at ZOOM level bounding GeoJSON [west, south,
