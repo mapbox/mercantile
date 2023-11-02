@@ -1,3 +1,4 @@
+import math
 import warnings
 
 from hypothesis import example, given
@@ -177,6 +178,10 @@ def test_tiles_roundtrip_children():
     res = list(mercantile.tiles(*mercantile.bounds(t), zooms=[15]))
     assert len(res) == 4
 
+def test_tiles_nan_bounds():
+    bounds = (-105, math.nan, -104.99, 40)
+    with pytest.raises(mercantile.MercantileError):
+        list(mercantile.tiles(*bounds, zooms=[14]))
 
 def test_quadkey():
     tile = mercantile.Tile(486, 332, 10)
