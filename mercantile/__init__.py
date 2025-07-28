@@ -198,7 +198,7 @@ def ul(*tile):
     return LngLat(lon_deg, lat_deg)
 
 
-def bounds(*tile: Union[Tile, Tuple[int, int, int]]) -> LngLatBbox:
+def bounds(*tile: Union[Tile, Tuple[int, int, int], int]) -> LngLatBbox:
     """Returns the bounding box of a tile
 
     Parameters
@@ -295,7 +295,7 @@ def lnglat(x: Union[int, float], y: Union[int, float], truncate: bool = False) -
     return LngLat(lng, lat)
 
 
-def neighbors(*tile: Union[Tile, Tuple[int, int, int]], **kwargs) -> list[Tile]:
+def neighbors(*tile: Union[Tile, Tuple[int, int, int], int], **kwargs) -> list[Tile]:
     """The neighbors of a tile
 
     The neighbors function makes no guarantees regarding neighbor tile
@@ -348,7 +348,7 @@ def neighbors(*tile: Union[Tile, Tuple[int, int, int]], **kwargs) -> list[Tile]:
     return tiles
 
 
-def xy_bounds(*tile: Union[Tile, Tuple[int, int, int]]) -> Bbox:
+def xy_bounds(*tile: Union[Tile, Tuple[int, int, int], int]) -> Bbox:
     """Get the web mercator bounding box of a tile
 
     Parameters
@@ -436,7 +436,7 @@ def tile(lng: Union[int, float], lat: Union[int, float], zoom: int, truncate: bo
     return Tile(xtile, ytile, zoom)
 
 
-def quadkey(*tile: Union[Tile, Tuple[int, int, int]]) -> str:
+def quadkey(*tile: Union[Tile, Tuple[int, int, int], int]) -> str:
     """Get the quadkey of a tile
 
     Parameters
@@ -548,7 +548,7 @@ def tiles(west: Union[int, float], south: Union[int, float], east: Union[int, fl
                     yield Tile(i, j, z)
 
 
-def parent(*tile: Union[Tile, Tuple[int, int, int]], **kwargs) -> Tile:
+def parent(*tile: Union[Tile, Tuple[int, int, int], int], **kwargs) -> Tile:
     """Get the parent of a tile
 
     The parent is the tile of one zoom level lower that contains the
@@ -608,7 +608,7 @@ def parent(*tile: Union[Tile, Tuple[int, int, int]], **kwargs) -> Tile:
     return return_tile
 
 
-def children(*tile: Union[Tile, Tuple[int, int, int]], **kwargs) -> list[Tile]:
+def children(*tile: Union[Tile, Tuple[int, int, int], int], **kwargs) -> list[Tile]:
     """Get the children of a tile
 
     The children are ordered: top-left, top-right, bottom-right, bottom-left.
@@ -728,7 +728,7 @@ def rshift(val: int, n: int) -> int:
     return (val % 0x100000000) >> n
 
 
-def bounding_tile(*bbox: Union[LngLatBbox, Tuple[float, float, float, float]], **kwds) -> Tile:
+def bounding_tile(*bbox: Union[LngLatBbox, Tuple[float, float, float, float], float], **kwds) -> Tile:
     """Get the smallest tile containing a geographic bounding box
 
     NB: when the bbox spans lines of lng 0 or lat 0, the bounding tile
@@ -786,7 +786,7 @@ def _getBboxZoom(*bbox) -> int:
 
 
 def feature(
-    tile: Union[Tile, Tuple[int, int, int]], fid: Optional[str] = None, props: Optional[dict] = None, projected: Optional[str] = "geographic", buffer: Union[int, float, None] = None, precision: Optional[int] = None
+    tile: Union[Tile, Tuple[int, int, int], int], fid: Optional[str] = None, props: Optional[dict] = None, projected: Optional[str] = "geographic", buffer: Union[int, float, None] = None, precision: Optional[int] = None
 ):
     """Get the GeoJSON feature corresponding to a tile
 
