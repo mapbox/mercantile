@@ -58,6 +58,7 @@ RE = 6378137.0
 CE = 2 * math.pi * RE
 EPSILON = 1e-14
 LL_EPSILON = 1e-11
+MAX_ZOOM_LEVEL = int(math.log2(sys.float_info.max)) - 1
 
 
 class Tile(namedtuple("Tile", ["x", "y", "z"])):
@@ -190,6 +191,11 @@ def ul(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
+    if zoom > MAX_ZOOM_LEVEL:
+        raise InvalidZoomError(
+            "zoom must be less than or equal to {}".format(MAX_ZOOM_LEVEL)
+        )
+
     Z2 = math.pow(2, zoom)
     lon_deg = xtile / Z2 * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / Z2)))
@@ -212,6 +218,10 @@ def bounds(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
+    if zoom > MAX_ZOOM_LEVEL:
+        raise InvalidZoomError(
+            "zoom must be less than or equal to {}".format(MAX_ZOOM_LEVEL)
+        )
 
     Z2 = math.pow(2, zoom)
 
@@ -367,6 +377,10 @@ def xy_bounds(*tile):
     """
     tile = _parse_tile_arg(*tile)
     xtile, ytile, zoom = tile
+    if zoom > MAX_ZOOM_LEVEL:
+        raise InvalidZoomError(
+            "zoom must be less than or equal to {}".format(MAX_ZOOM_LEVEL)
+        )
 
     tile_size = CE / math.pow(2, zoom)
 
@@ -413,6 +427,11 @@ def tile(lng, lat, zoom, truncate=False):
 
     """
     x, y = _xy(lng, lat, truncate=truncate)
+    if zoom > MAX_ZOOM_LEVEL:
+        raise InvalidZoomError(
+            "zoom must be less than or equal to {}".format(MAX_ZOOM_LEVEL)
+        )
+
     Z2 = math.pow(2, zoom)
 
     if x <= 0:

@@ -112,6 +112,19 @@ def test_tile_truncate():
     )
 
 
+@pytest.mark.parametrize(
+    'func',
+    [mercantile.ul, mercantile.bounds, mercantile.xy_bounds, mercantile.tile]
+)
+def test_invalid_zoom_level_64_bit(func):
+    """Test that an error is raised when an invalid zoom level is provided."""
+    with pytest.raises(mercantile.InvalidZoomError) as exc_info:
+        func(3, 13, 1024)
+
+    err_msg, = exc_info.value.args
+    assert err_msg == 'zoom must be less than or equal to 1023'
+
+
 def test_tiles():
     bounds = (-105, 39.99, -104.99, 40)
     tiles = list(mercantile.tiles(*bounds, zooms=[14]))
