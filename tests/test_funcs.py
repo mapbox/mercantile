@@ -122,6 +122,24 @@ def test_tiles():
     assert sorted(tiles) == sorted(expect)
 
 
+def test_tiles_span_ns():
+    bounds = (-123.5318, 38.8169, -122.1547, 37.3048)
+    tiles = list(mercantile.tiles(*bounds, zooms=[14]))
+    assert len(tiles) == 1043072
+
+
+def test_tiles_span_ew():
+    bounds = (-122.1547, 37.3048, -123.5318, 38.8169)
+    tiles = list(mercantile.tiles(*bounds, zooms=[14]))
+    assert len(tiles) == 1436336
+
+
+def test_tiles_span_corners():
+    bounds = (-120.5318, 38.8169, -122.1547, 37.3048)
+    tiles = list(mercantile.tiles(*bounds, zooms=[5]))
+    assert len(tiles) == 1089
+
+
 def test_tiles_single_zoom():
     bounds = (-105, 39.99, -104.99, 40)
     tiles = list(mercantile.tiles(*bounds, zooms=14))
