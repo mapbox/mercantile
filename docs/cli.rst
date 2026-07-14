@@ -112,7 +112,7 @@ away from the zoom=1 tile intersection.
 
 .. code-block:: console
 
-    $ echo "[-92, 1, -91, 2]" | mercantile tiles bounding-tile
+    $ echo "[-92, 1, -91, 2]" | mercantile bounding-tile
     [31, 63, 7]
 
 children
