@@ -326,13 +326,18 @@ def neighbors(*tile, **kwargs):
 
     for i in [-1, 0, 1]:
         for j in [-1, 0, 1]:
+            n_xtile, n_ytile = xtile + i, ytile + j
             if i == 0 and j == 0:
                 continue
-            elif xtile + i < 0 or ytile + j < 0:
+            elif n_ytile < 0:
                 continue
-            elif xtile + i > hi or ytile + j > hi:
+            elif n_ytile > hi:
                 continue
-            tiles.append(Tile(x=xtile + i, y=ytile + j, z=ztile))
+            elif n_xtile < 0:
+                n_xtile = hi
+            elif n_xtile > hi:
+                n_xtile = 0
+            tiles.append(Tile(x=n_xtile, y=n_ytile, z=ztile))
 
     # Make sure to not generate invalid tiles for valid input
     # https://github.com/mapbox/mercantile/issues/122
