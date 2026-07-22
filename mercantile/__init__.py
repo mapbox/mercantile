@@ -518,6 +518,9 @@ def tiles(west, south, east, north, zooms, truncate=False):
     function yields exactly one tile when given the bounds of that same tile.
 
     """
+    if any(math.isnan(coord) for coord in (west, south, east, north)):
+        raise MercantileError("All coordinates must be finite.")
+
     if truncate:
         west, south = truncate_lnglat(west, south)
         east, north = truncate_lnglat(east, north)
