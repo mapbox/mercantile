@@ -832,7 +832,7 @@ def feature(
     geom = {
         "type": "Polygon",
         "coordinates": [
-            [[west, south], [west, north], [east, north], [east, south], [west, south]]
+            [[east, north], [west, north], [west, south], [east, south], [east, north]]
         ],
     }
 
